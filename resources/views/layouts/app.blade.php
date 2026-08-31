@@ -6,6 +6,9 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>@yield('title', 'SIBI Learn - Platform Belajar Bahasa Isyarat')</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
