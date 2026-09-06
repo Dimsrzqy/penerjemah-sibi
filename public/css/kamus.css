@@ -1,0 +1,32 @@
+/* ============================================================
+   SIBI LEARN - KAMUS SIBI STYLESHEET
+   ============================================================ */
+
+/* Hide scrollbar for category filter container */
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Dictionary card hover interaction */
+.dict-card {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.dict-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 16px 32px -10px rgba(0, 88, 190, 0.12);
+}
+
+/* Play icon animation on hover */
+.dict-card:hover .material-symbols-outlined {
+    transform: scale(1.1);
+}
+
+/* Filter button active state */
+.filter-btn.active {
+    box-shadow: 0 4px 14px 0 rgba(0, 88, 190, 0.25);
+}

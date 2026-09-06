@@ -1,0 +1,37 @@
+/* ============================================================
+   SIBI LEARN - PENERJEMAH SIBI STYLESHEET
+   ============================================================ */
+
+/* Mirror video and canvas for natural user gesture preview */
+.mirror-mode {
+    transform: scaleX(-1);
+}
+
+/* Glassmorphism panel for camera HUD and status cards */
+.translator-glass {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+/* Pulse indicator for live camera recording */
+.live-recording-dot {
+    animation: livePulse 1.5s infinite ease-in-out;
+}
+
+@keyframes livePulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(0.85);
+    }
+}
+
+/* Hold Progress Bar for Auto-Typing Dwell */
+#holdProgressBar {
+    transition: width 0.08s linear;
+}

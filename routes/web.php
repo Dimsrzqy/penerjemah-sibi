@@ -1,9 +1,19 @@
 <?php
 
+use App\Models\QuizScore;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('index');
+    try {
+        $leaderboard = QuizScore::with('guest')
+            ->orderByDesc('score')
+            ->take(10)
+            ->get();
+    } catch (\Throwable $e) {
+        $leaderboard = collect();
+    }
+
+    return view('index', compact('leaderboard'));
 })->name('beranda');
 
 Route::get('/penerjemah', function () {
@@ -14,6 +24,11 @@ Route::get('/kamus', function () {
     return view('kamus');
 })->name('kamus');
 
-Route::get('/quiz', function () {
-    return view('quiz');
-})->name('quiz');
+use App\Http\Controllers\QuizController;
+
+Route::get('/quiz', [QuizController::class, 'index'])->name('quiz');
+Route::post('/quiz/guest', [QuizController::class, 'storeGuest'])->name('quiz.guest');
+Route::get('/quiz/questions/{difficulty}', [QuizController::class, 'getQuestions'])->name('quiz.questions');
+Route::post('/quiz/score', [QuizController::class, 'storeScore'])->name('quiz.score');
+Route::post('/quiz/reset-session', [QuizController::class, 'resetSession'])->name('quiz.reset-session');
+

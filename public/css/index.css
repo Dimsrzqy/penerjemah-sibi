@@ -1,0 +1,32 @@
+/* ============================================================
+   SIBI LEARN - INDEX (BERANDA) STYLESHEET
+   ============================================================ */
+
+/* Hero Image Card Animation */
+.hero-image-card {
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
+}
+
+.hero-image-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -15px rgba(0, 88, 190, 0.15);
+}
+
+/* Leaderboard Rank Items Hover & Elevation */
+.leaderboard-item-top {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.leaderboard-item-top:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.08);
+}
+
+/* Micro-interaction for buttons */
+.btn-action-bounce {
+    transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.btn-action-bounce:active {
+    transform: scale(0.96);
+}
