@@ -20,11 +20,11 @@ Route::get('/penerjemah', function () {
     return view('penerjemah');
 })->name('penerjemah');
 
-Route::get('/kamus', function () {
-    return view('kamus');
-})->name('kamus');
-
+use App\Http\Controllers\KamusController;
 use App\Http\Controllers\QuizController;
+
+Route::get('/kamus', [KamusController::class, 'index'])->name('kamus');
+
 
 Route::get('/quiz', [QuizController::class, 'index'])->name('quiz');
 Route::post('/quiz/guest', [QuizController::class, 'storeGuest'])->name('quiz.guest');
