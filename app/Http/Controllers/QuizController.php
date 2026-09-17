@@ -165,25 +165,25 @@ class QuizController extends Controller
     {
         $defaults = [
             'mudah' => [
-                ['quizzes_id' => 1, 'word_target' => 'MAKAN', 'difficulty' => 'mudah'],
-                ['quizzes_id' => 2, 'word_target' => 'RUMAH', 'difficulty' => 'mudah'],
-                ['quizzes_id' => 3, 'word_target' => 'TEMAN', 'difficulty' => 'mudah'],
-                ['quizzes_id' => 4, 'word_target' => 'BELAJAR', 'difficulty' => 'mudah'],
-                ['quizzes_id' => 5, 'word_target' => 'HALO', 'difficulty' => 'mudah'],
+                ['quizzes_id' => 1, 'word_target' => 'SAYA', 'difficulty' => 'mudah'],
+                ['quizzes_id' => 2, 'word_target' => 'KULIAH', 'difficulty' => 'mudah'],
+                ['quizzes_id' => 3, 'word_target' => 'KAMPUS', 'difficulty' => 'mudah'],
+                ['quizzes_id' => 4, 'word_target' => 'ADIK', 'difficulty' => 'mudah'],
+                ['quizzes_id' => 5, 'word_target' => 'APA', 'difficulty' => 'mudah'],
             ],
             'sedang' => [
                 ['quizzes_id' => 6, 'word_target' => 'TERIMA KASIH', 'difficulty' => 'sedang'],
-                ['quizzes_id' => 7, 'word_target' => 'KABAR BAIK', 'difficulty' => 'sedang'],
-                ['quizzes_id' => 8, 'word_target' => 'BELAJAR ISYARAT', 'difficulty' => 'sedang'],
-                ['quizzes_id' => 9, 'word_target' => 'TEMAN BAIK', 'difficulty' => 'sedang'],
-                ['quizzes_id' => 10, 'word_target' => 'MAKAN BERSAMA', 'difficulty' => 'sedang'],
+                ['quizzes_id' => 7, 'word_target' => 'SELAMAT PAGI', 'difficulty' => 'sedang'],
+                ['quizzes_id' => 8, 'word_target' => 'SELAMAT MALAM', 'difficulty' => 'sedang'],
+                ['quizzes_id' => 9, 'word_target' => 'SAMPAI JUMPA', 'difficulty' => 'sedang'],
+                ['quizzes_id' => 10, 'word_target' => 'KABAR BAIK', 'difficulty' => 'sedang'],
             ],
             'susah' => [
-                ['quizzes_id' => 11, 'word_target' => 'SAYA MAKAN NASI', 'difficulty' => 'susah'],
-                ['quizzes_id' => 12, 'word_target' => 'SAYA BELAJAR BAHASA ISYARAT', 'difficulty' => 'susah'],
-                ['quizzes_id' => 13, 'word_target' => 'TEMAN DATANG KE RUMAH', 'difficulty' => 'susah'],
-                ['quizzes_id' => 14, 'word_target' => 'IBU MEMASAK DI DAPUR', 'difficulty' => 'susah'],
-                ['quizzes_id' => 15, 'word_target' => 'KAMI BERJUMPA DI KEDAI', 'difficulty' => 'susah'],
+                ['quizzes_id' => 11, 'word_target' => 'SAYA KULIAH KAMPUS', 'difficulty' => 'susah'],
+                ['quizzes_id' => 12, 'word_target' => 'AYAH PULANG SORE', 'difficulty' => 'susah'],
+                ['quizzes_id' => 13, 'word_target' => 'IBU SENANG BERTEMU', 'difficulty' => 'susah'],
+                ['quizzes_id' => 14, 'word_target' => 'KAMI BERTEMU SENIN PAGI', 'difficulty' => 'susah'],
+                ['quizzes_id' => 15, 'word_target' => 'ADIK SEKOLAH SIANG', 'difficulty' => 'susah'],
             ],
         ];
 

@@ -462,27 +462,27 @@ document.addEventListener('DOMContentLoaded', () => {
     function getFallbackQuestions(diff) {
         if (diff === 'mudah') {
             return [
-                { word_target: 'MAKAN', difficulty: 'mudah' },
-                { word_target: 'RUMAH', difficulty: 'mudah' },
-                { word_target: 'TEMAN', difficulty: 'mudah' },
-                { word_target: 'BELAJAR', difficulty: 'mudah' },
-                { word_target: 'HALO', difficulty: 'mudah' }
+                { word_target: 'SAYA', difficulty: 'mudah' },
+                { word_target: 'KULIAH', difficulty: 'mudah' },
+                { word_target: 'KAMPUS', difficulty: 'mudah' },
+                { word_target: 'ADIK', difficulty: 'mudah' },
+                { word_target: 'APA', difficulty: 'mudah' }
             ];
         } else if (diff === 'sedang') {
             return [
                 { word_target: 'TERIMA KASIH', difficulty: 'sedang' },
-                { word_target: 'KABAR BAIK', difficulty: 'sedang' },
-                { word_target: 'BELAJAR ISYARAT', difficulty: 'sedang' },
-                { word_target: 'TEMAN BAIK', difficulty: 'sedang' },
-                { word_target: 'MAKAN BERSAMA', difficulty: 'sedang' }
+                { word_target: 'SELAMAT PAGI', difficulty: 'sedang' },
+                { word_target: 'SELAMAT MALAM', difficulty: 'sedang' },
+                { word_target: 'SAMPAI JUMPA', difficulty: 'sedang' },
+                { word_target: 'KABAR BAIK', difficulty: 'sedang' }
             ];
         } else {
             return [
-                { word_target: 'SAYA MAKAN NASI', difficulty: 'susah' },
-                { word_target: 'SAYA BELAJAR BAHASA ISYARAT', difficulty: 'susah' },
-                { word_target: 'TEMAN DATANG KE RUMAH', difficulty: 'susah' },
-                { word_target: 'IBU MEMASAK DI DAPUR', difficulty: 'susah' },
-                { word_target: 'KAMI BERJUMPA DI KEDAI', difficulty: 'susah' }
+                { word_target: 'SAYA KULIAH KAMPUS', difficulty: 'susah' },
+                { word_target: 'AYAH PULANG SORE', difficulty: 'susah' },
+                { word_target: 'IBU SENANG BERTEMU', difficulty: 'susah' },
+                { word_target: 'KAMI BERTEMU SENIN PAGI', difficulty: 'susah' },
+                { word_target: 'ADIK SEKOLAH SIANG', difficulty: 'susah' }
             ];
         }
     }

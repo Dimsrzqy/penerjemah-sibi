@@ -73,109 +73,97 @@
                     Ganti Pemain
                 </button>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-on-surface">Pilih Tingkat Kesulitan</h2>
-            <p class="text-xs sm:text-sm text-on-surface-variant max-w-xl mx-auto">
-                Tiap tingkatan memiliki batas maksimal skor kuis. Poin per soal dibagi secara proporsional sesuai jumlah soal yang tersedia.
+            <h2 class="text-2xl sm:text-3xl font-heading font-extrabold text-on-surface tracking-tight">Pilih Tingkat Kesulitan</h2>
+            <p class="text-xs sm:text-sm text-on-surface-variant max-w-xl mx-auto font-sans leading-relaxed">
+                Pilih tingkat kesulitan untuk memulai tantangan kuis peragaan isyarat SIBI.
             </p>
         </div>
 
-        <!-- 3 Kartu Tingkat Kesulitan -->
+        <!-- 3 Kartu Tingkat Kesulitan (Warna Soft Pastel Minimalis) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-            <!-- 1. Tingkat Mudah -->
-            <div class="difficulty-card group bg-surface-container rounded-3xl p-6 shadow-md hover:shadow-xl border-2 border-transparent hover:border-emerald-500 cursor-pointer transition-all duration-200 flex flex-col justify-between"
+            <!-- 1. Tingkat Mudah (Soft Emerald) -->
+            <div class="difficulty-card group bg-emerald-50/40 hover:bg-emerald-50/80 rounded-3xl p-6 sm:p-7 shadow-xs hover:shadow-md border border-emerald-200/60 cursor-pointer transition-all duration-200 flex flex-col justify-between"
                 data-difficulty="mudah">
                 <div class="space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xl shadow-sm">
-                        <span class="material-symbols-outlined text-2xl">eco</span>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between gap-2 flex-wrap">
-                            <span class="inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
-                                1 Kata / Soal
-                            </span>
-                            <span class="text-[11px] font-extrabold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                                Maks. 100 Poin
-                            </span>
+                    <!-- Icon & Title -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-100/80 text-emerald-700 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-2xl">eco</span>
                         </div>
-                        <div class="flex items-center gap-1.5 pt-0.5">
-                            <span class="text-[10px] font-bold text-on-surface-variant bg-surface-container-highest px-2 py-0.5 rounded-full">⏱️ 10 Detik / Soal</span>
+                        <div>
+                            <h3 class="text-xl font-heading font-bold text-on-surface">Tingkat Mudah</h3>
+                            <span class="text-xs font-semibold text-emerald-700/90">1 Kata • ⏱️ 10 Detik</span>
                         </div>
-                        <h3 class="text-xl font-extrabold text-on-surface pt-1">Tingkat Mudah</h3>
                     </div>
-                    <p class="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                        Hanya menampilkan <strong>1 kata kosakata dasar</strong> pada setiap soal (contoh: <em>MAKAN</em>, <em>RUMAH</em>). Cocok untuk pemula.
+
+                    <p class="text-xs sm:text-sm text-on-surface-variant/90 leading-relaxed font-sans">
+                        Hanya menampilkan 1 kata kosakata dasar pada setiap soal (contoh: SAYA, KULIAH). Cocok untuk pemula.
                     </p>
                 </div>
-                <div class="pt-6 border-t border-outline-variant/15 mt-6 flex items-center justify-between">
-                    <span class="text-xs font-bold text-emerald-600">Maks. 100 Poin Total</span>
-                    <button type="button" class="bg-emerald-600 group-hover:bg-emerald-500 text-white p-2 rounded-xl transition-colors">
-                        <span class="material-symbols-outlined text-base">play_arrow</span>
+
+                <div class="pt-5 border-t border-emerald-200/40 mt-5 flex items-center justify-between">
+                    <span class="text-xs font-medium text-on-surface-variant">Maks. <strong class="text-emerald-700 font-bold">100 Poin</strong></span>
+                    <button type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-1 shadow-xs">
+                        <span>Mulai</span>
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </button>
                 </div>
             </div>
 
-            <!-- 2. Tingkat Sedang -->
-            <div class="difficulty-card group bg-surface-container rounded-3xl p-6 shadow-md hover:shadow-xl border-2 border-transparent hover:border-amber-500 cursor-pointer transition-all duration-200 flex flex-col justify-between"
+            <!-- 2. Tingkat Sedang (Soft Amber) -->
+            <div class="difficulty-card group bg-amber-50/40 hover:bg-amber-50/80 rounded-3xl p-6 sm:p-7 shadow-xs hover:shadow-md border border-amber-200/60 cursor-pointer transition-all duration-200 flex flex-col justify-between"
                 data-difficulty="sedang">
                 <div class="space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xl shadow-sm">
-                        <span class="material-symbols-outlined text-2xl">bolt</span>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between gap-2 flex-wrap">
-                            <span class="inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
-                                2 Kata Berkaitan
-                            </span>
-                            <span class="text-[11px] font-extrabold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-md">
-                                Maks. 250 Poin
-                            </span>
+                    <!-- Icon & Title -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-100/80 text-amber-700 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-2xl">bolt</span>
                         </div>
-                        <div class="flex items-center gap-1.5 pt-0.5">
-                            <span class="text-[10px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">⏱️ 10 Detik Total Semua Kata</span>
+                        <div>
+                            <h3 class="text-xl font-heading font-bold text-on-surface">Tingkat Sedang</h3>
+                            <span class="text-xs font-semibold text-amber-700/90">2 Kata • ⏱️ 10 Detik</span>
                         </div>
-                        <h3 class="text-xl font-extrabold text-on-surface pt-1">Tingkat Sedang</h3>
                     </div>
-                    <p class="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                        Menampilkan <strong>2 kata yang saling berkaitan</strong> berurutan (contoh: <em>TERIMA KASIH</em>, <em>KABAR BAIK</em>). Selesaikan dalam total 10 detik.
+
+                    <p class="text-xs sm:text-sm text-on-surface-variant/90 leading-relaxed font-sans">
+                        Menampilkan 2 kata yang saling berkaitan berurutan (contoh: TERIMA KASIH, SELAMAT PAGI). Selesaikan dalam total 10 detik.
                     </p>
                 </div>
-                <div class="pt-6 border-t border-outline-variant/15 mt-6 flex items-center justify-between">
-                    <span class="text-xs font-bold text-amber-600">Maks. 250 Poin Total</span>
-                    <button type="button" class="bg-amber-600 group-hover:bg-amber-500 text-white p-2 rounded-xl transition-colors">
-                        <span class="material-symbols-outlined text-base">play_arrow</span>
+
+                <div class="pt-5 border-t border-amber-200/40 mt-5 flex items-center justify-between">
+                    <span class="text-xs font-medium text-on-surface-variant">Maks. <strong class="text-amber-700 font-bold">250 Poin</strong></span>
+                    <button type="button" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-1 shadow-xs">
+                        <span>Mulai</span>
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </button>
                 </div>
             </div>
 
-            <!-- 3. Tingkat Susah -->
-            <div class="difficulty-card group bg-surface-container rounded-3xl p-6 shadow-md hover:shadow-xl border-2 border-transparent hover:border-rose-500 cursor-pointer transition-all duration-200 flex flex-col justify-between"
+            <!-- 3. Tingkat Susah (Soft Rose) -->
+            <div class="difficulty-card group bg-rose-50/40 hover:bg-rose-50/80 rounded-3xl p-6 sm:p-7 shadow-xs hover:shadow-md border border-rose-200/60 cursor-pointer transition-all duration-200 flex flex-col justify-between"
                 data-difficulty="susah">
                 <div class="space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-xl shadow-sm">
-                        <span class="material-symbols-outlined text-2xl">local_fire_department</span>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between gap-2 flex-wrap">
-                            <span class="inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600">
-                                3 - 4 Kata (SPOK)
-                            </span>
-                            <span class="text-[11px] font-extrabold text-rose-600 bg-rose-500/10 px-2 py-0.5 rounded-md">
-                                Maks. 500 Poin
-                            </span>
+                    <!-- Icon & Title -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-100/80 text-rose-700 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-2xl">local_fire_department</span>
                         </div>
-                        <div class="flex items-center gap-1.5 pt-0.5">
-                            <span class="text-[10px] font-bold text-rose-600 bg-rose-500/10 px-2 py-0.5 rounded-full">⏱️ 10 Detik Total Rangkaian Kata</span>
+                        <div>
+                            <h3 class="text-xl font-heading font-bold text-on-surface">Tingkat Susah</h3>
+                            <span class="text-xs font-semibold text-rose-700/90">3 - 4 Kata (SPOK) • ⏱️ 10 Detik</span>
                         </div>
-                        <h3 class="text-xl font-extrabold text-on-surface pt-1">Tingkat Susah</h3>
                     </div>
-                    <p class="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                        Menampilkan <strong>3 atau 4 kata berpola SPOK</strong> (contoh: <em>SAYA MAKAN NASI</em>). Peragakan berurutan dalam total 10 detik.
+
+                    <p class="text-xs sm:text-sm text-on-surface-variant/90 leading-relaxed font-sans">
+                        Menampilkan 3 atau 4 kata berpola SPOK (contoh: SAYA KULIAH DARI PAGI). Peragakan berurutan dalam total 10 detik.
                     </p>
                 </div>
-                <div class="pt-6 border-t border-outline-variant/15 mt-6 flex items-center justify-between">
-                    <span class="text-xs font-bold text-rose-600">Maks. 500 Poin Total</span>
-                    <button type="button" class="bg-rose-600 group-hover:bg-rose-500 text-white p-2 rounded-xl transition-colors">
-                        <span class="material-symbols-outlined text-base">play_arrow</span>
+
+                <div class="pt-5 border-t border-rose-200/40 mt-5 flex items-center justify-between">
+                    <span class="text-xs font-medium text-on-surface-variant">Maks. <strong class="text-rose-700 font-bold">500 Poin</strong></span>
+                    <button type="button" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all flex items-center gap-1 shadow-xs">
+                        <span>Mulai</span>
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </button>
                 </div>
             </div>
