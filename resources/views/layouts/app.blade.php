@@ -211,7 +211,7 @@
     </nav>
 
     <!-- Main Content Area -->
-    <main class="flex-grow pt-20 pb-16 px-4 md:px-10 max-w-[1280px] mx-auto w-full">
+    <main class="flex-grow pt-20 pb-16 px-3.5 sm:px-6 md:px-10 max-w-[1280px] mx-auto w-full">
         @yield('content')
     </main>
 
