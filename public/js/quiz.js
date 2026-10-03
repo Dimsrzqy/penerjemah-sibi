@@ -149,20 +149,36 @@ document.addEventListener('DOMContentLoaded', () => {
     let handsDetector = null;
     let isProcessingFrame = false;
     let holdFrames = 0;
-    const HOLD_FRAMES_TARGET = 12;
+    const HOLD_FRAMES_TARGET = 10;
+    let handLostFrames = 0;
+    const HAND_LOST_TOLERANCE = 8;
 
     // Deep Learning AI State (TensorFlow.js)
     let tfModel = null;
-    let modelUrl = '/models/sibi_model/model.json';
-    let featureDimension = '63'; // '63' | '42' | '126' | 'normalized_wrist'
+    let modelUrl = '/models/tfjs_model/model.json';
+    let featureDimension = '126'; // '126' (2 tangan 3D/2D) | '63' | '42' | 'normalized_wrist'
     let confidenceThreshold = 0.70;
     let classLabels = [
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-        'MAKAN', 'RUMAH', 'TEMAN', 'BELAJAR', 'HALO', 'MAAF',
-        'TERIMA KASIH', 'KABAR BAIK', 'SAMA-SAMA', 'SAYA', 'NASI',
-        'IBU', 'DAPUR', 'KEDAI', 'DATANG', 'KE', 'BERSAMA'
+        'ADIK', 'APA', 'AYAH', 'BAIK', 'BERAPA', 'BERTEMU', 'CANTIK', 'DARI', 'DIA', 'DIMANA',
+        'GANTENG', 'GEMUK', 'HALLO', 'HOBI', 'IBU', 'JUMAT', 'JURUSAN', 'KABAR', 'KAKEK', 'KALIAN',
+        'KAMI', 'KAMIS', 'KAMPUS', 'KAMU', 'KELAS', 'KELUARGA', 'KEMANA', 'KENAPA', 'KITA', 'KULIAH',
+        'KURUS', 'LUCU', 'MALAM', 'MAU', 'MEREKA', 'MINGGU', 'NAMA', 'PAGI', 'PELIT', 'PENDIDIKAN',
+        'PINTAR', 'PULANG', 'RABU', 'SABAR', 'SABTU', 'SAKIT', 'SAMPAI JUMPA', 'SAYA', 'SEKOLAH', 'SELAMAT',
+        'SELASA', 'SEMESTER', 'SENANG', 'SENIN', 'SIANG', 'SIAPA', 'SORE', 'TERIMAKASIH', 'TINGGAL', 'UMUR'
     ];
+    let sequenceBuffer = [];
+    const SEQUENCE_LENGTH = 30;
+
+    // Inference Throttler
+    let lastInferTime = 0;
+    const INFER_INTERVAL_MS = 100;
+    let isInferring = false;
+
+    // Offscreen Processing Canvas untuk ekstraksi cepat
+    let procCanvas = document.createElement('canvas');
+    let procCtx = procCanvas.getContext('2d', { willReadFrequently: true });
+    procCanvas.width = 360;
+    procCanvas.height = 270;
 
     // ----------------------------------------------------
     // INACTIVITY MONITOR: Deteksi Tidak Ada Pergerakan (3 Menit)
@@ -382,10 +398,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // STEP 2: Difficulty Selection (Terkoneksi ke tabel quizzes)
     // ----------------------------------------------------
     difficultyCards.forEach(card => {
-        card.addEventListener('click', async () => {
+        const handleSelectDifficulty = async () => {
             const diff = card.getAttribute('data-difficulty');
             selectedDifficulty = diff;
             await startQuizWithDifficulty(diff);
+        };
+
+        card.addEventListener('click', handleSelectDifficulty);
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleSelectDifficulty();
+            }
         });
     });
 
@@ -397,21 +421,21 @@ document.addEventListener('DOMContentLoaded', () => {
             maxScore = 100;
             if (activeDifficultyBadge) {
                 activeDifficultyBadge.textContent = 'Mudah';
-                activeDifficultyBadge.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600';
+                activeDifficultyBadge.className = 'text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-primary/10 text-primary';
             }
             if (summaryDifficultyText) summaryDifficultyText.textContent = 'Mudah (Kata Tunggal · Maks. 100 Poin)';
         } else if (diff === 'sedang') {
             maxScore = 250;
             if (activeDifficultyBadge) {
                 activeDifficultyBadge.textContent = 'Sedang';
-                activeDifficultyBadge.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600';
+                activeDifficultyBadge.className = 'text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-primary/10 text-primary';
             }
             if (summaryDifficultyText) summaryDifficultyText.textContent = 'Sedang (Kombinasi 2 Kata · Maks. 250 Poin)';
         } else {
             maxScore = 500;
             if (activeDifficultyBadge) {
                 activeDifficultyBadge.textContent = 'Susah';
-                activeDifficultyBadge.className = 'text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600';
+                activeDifficultyBadge.className = 'text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-primary/10 text-primary';
             }
             if (summaryDifficultyText) summaryDifficultyText.textContent = 'Susah (Kalimat SPOK · Maks. 500 Poin)';
         }
@@ -492,6 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     function loadQuestion(index) {
         isQuestionCompleted = false;
+        sequenceBuffer = [];
+        holdFrames = 0;
         if (btnNextQuestion) btnNextQuestion.classList.add('hidden');
         if (btnSimulateMatch) btnSimulateMatch.classList.remove('hidden');
 
@@ -553,21 +579,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (timeLeft <= 3) {
             questionTimerBar.className = 'h-full bg-rose-500 w-full rounded-full transition-all';
-            questionTimerText.className = 'text-base sm:text-xl font-black text-rose-600 tracking-tight timer-pulse-danger';
+            questionTimerText.className = 'text-xs sm:text-sm font-black text-rose-600 tracking-tight timer-pulse-danger min-w-[22px]';
             if (timerIconWrapper) {
-                timerIconWrapper.className = 'w-10 h-10 rounded-xl bg-rose-500/20 text-rose-600 flex items-center justify-center transition-colors';
+                timerIconWrapper.className = 'w-6 h-6 rounded-lg bg-rose-500/15 text-rose-600 flex items-center justify-center transition-colors shrink-0';
+            }
+            if (questionTimerContainer) {
+                questionTimerContainer.classList.add('border-rose-400/40', 'bg-rose-500/5');
             }
         } else if (timeLeft <= 5) {
             questionTimerBar.className = 'h-full bg-amber-500 w-full rounded-full transition-all';
-            questionTimerText.className = 'text-base sm:text-xl font-black text-amber-600 tracking-tight';
+            questionTimerText.className = 'text-xs sm:text-sm font-black text-amber-600 tracking-tight min-w-[22px]';
             if (timerIconWrapper) {
-                timerIconWrapper.className = 'w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center transition-colors';
+                timerIconWrapper.className = 'w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center transition-colors shrink-0';
+            }
+            if (questionTimerContainer) {
+                questionTimerContainer.classList.remove('border-rose-400/40', 'bg-rose-500/5');
             }
         } else {
             questionTimerBar.className = 'h-full bg-primary w-full rounded-full transition-all';
-            questionTimerText.className = 'text-base sm:text-xl font-black text-on-surface tracking-tight';
+            questionTimerText.className = 'text-xs sm:text-sm font-black text-on-surface tracking-tight min-w-[22px]';
             if (timerIconWrapper) {
-                timerIconWrapper.className = 'w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-colors';
+                timerIconWrapper.className = 'w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center transition-colors shrink-0';
+            }
+            if (questionTimerContainer) {
+                questionTimerContainer.classList.remove('border-rose-400/40', 'bg-rose-500/5');
             }
         }
     }
@@ -587,7 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetWordsContainer) {
             const chips = targetWordsContainer.querySelectorAll('.word-step-card, div');
             chips.forEach(chip => {
-                chip.classList.remove('from-blue-600', 'via-indigo-600', 'to-blue-700', 'word-step-active', 'ring-4', 'ring-blue-400/60', 'bg-emerald-500', 'text-white');
+                chip.classList.remove('from-blue-600', 'via-indigo-600', 'to-blue-700', 'bg-primary', 'word-step-active', 'ring-2', 'ring-4', 'ring-blue-400/60', 'ring-primary/40', 'bg-emerald-500', 'text-white');
                 if (chip.children && chip.children.length > 0) {
                     chip.classList.add('bg-rose-500/15', 'text-rose-600', 'border', 'border-rose-500/40');
                 }
@@ -605,7 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (bottomHintText) {
             bottomHintText.textContent = 'Waktu 10 detik habis! Seluruh kata harus selesai sebelum 10 detik (+0 Poin).';
-            bottomHintText.className = 'text-[11px] text-rose-300 bg-rose-950/80 px-3.5 py-1 rounded-full backdrop-blur-md border border-rose-500/30';
+            bottomHintText.className = 'text-[10px] text-rose-300 bg-rose-950/80 px-3 py-0.5 rounded-full backdrop-blur-md border border-rose-500/30';
         }
 
         if (btnSimulateMatch) btnSimulateMatch.classList.add('hidden');
@@ -630,39 +665,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (subWords.length === 1) {
             // Single word (Tingkat Mudah)
-            if (targetPromptBadge) targetPromptBadge.textContent = 'Tantangan 1 Kata (10s Total)';
+            if (targetPromptBadge) targetPromptBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span><span>Tantangan 1 Kata (10s)</span>';
             if (targetPromptSubtitle) {
                 targetPromptSubtitle.innerHTML = 'Peragakan kata di bawah sebelum waktu <strong>10 detik</strong> habis:';
             }
 
             const isMatched = currentSubWordIndex > 0;
             const chip = document.createElement('div');
-            chip.className = `word-step-card px-8 py-3 sm:py-4 rounded-2xl font-black text-2xl sm:text-3xl tracking-wider transition-all shadow-md flex flex-col items-center gap-1.5 min-w-[180px] ${
+            chip.className = `word-step-card px-5 py-1.5 sm:py-2 rounded-xl font-extrabold text-sm sm:text-base tracking-wider transition-all shadow-xs flex items-center gap-2 min-w-[140px] justify-center ${
                 isMatched 
-                    ? 'bg-emerald-500 text-white shadow-emerald-500/20 ring-4 ring-emerald-400/50' 
-                    : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white word-step-active ring-4 ring-blue-400/50'
+                    ? 'bg-emerald-500 text-white shadow-emerald-500/20 ring-2 ring-emerald-400/50' 
+                    : 'bg-primary text-on-primary word-step-active ring-2 ring-primary/40'
             }`;
 
             chip.innerHTML = `
-                <div class="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider bg-white/20 px-3 py-0.5 rounded-full">
+                <div class="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
                     ${isMatched 
-                        ? '<span class="material-symbols-outlined text-xs">check</span><span>Selesai</span>' 
-                        : '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>Peragakan Sekarang (10s)</span>'
+                        ? '<span class="material-symbols-outlined text-[10px]">check</span><span>Selesai</span>' 
+                        : '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span><span>Peragakan</span>'
                     }
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
                     <span>${subWords[0]}</span>
-                    ${isMatched ? '<span class="material-symbols-outlined text-2xl">check_circle</span>' : ''}
+                    ${isMatched ? '<span class="material-symbols-outlined text-base">check_circle</span>' : ''}
                 </div>
             `;
             targetWordsContainer.appendChild(chip);
         } else {
             // Multi-word (Tingkat Sedang 2 Kata / Tingkat Susah 3-4 Kata)
             if (targetPromptBadge) {
-                targetPromptBadge.textContent = `Rangkaian ${subWords.length} Kata (10s Total)`;
+                targetPromptBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span><span>Rangkaian ${subWords.length} Kata (10s)</span>`;
             }
             if (targetPromptSubtitle) {
-                targetPromptSubtitle.innerHTML = `Peragakan <strong>${subWords.length} kata</strong> berikut secara <strong>berurutan</strong> dalam total waktu <strong>10 detik</strong>:`;
+                targetPromptSubtitle.innerHTML = `Peragakan <strong>${subWords.length} kata</strong> berurutan (total <strong>10s</strong>):`;
             }
 
             subWords.forEach((word, idx) => {
@@ -673,11 +708,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Tanda panah penghubung antar kata dalam rangkaian
                 if (idx > 0) {
                     const arrowEl = document.createElement('div');
-                    arrowEl.className = `flex items-center justify-center px-1 transition-all ${
-                        isPassed ? 'text-emerald-500 font-bold' : (isCurrent ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-outline-variant/60')
+                    arrowEl.className = `flex items-center justify-center px-0.5 transition-all ${
+                        isPassed ? 'text-emerald-500 font-bold' : (isCurrent ? 'text-primary font-bold' : 'text-outline-variant/60')
                     }`;
                     arrowEl.innerHTML = `
-                        <span class="material-symbols-outlined text-xl sm:text-2xl ${isCurrent ? 'step-arrow-pulse' : ''}">
+                        <span class="material-symbols-outlined text-sm sm:text-base ${isCurrent ? 'step-arrow-pulse' : ''}">
                             arrow_forward
                         </span>
                     `;
@@ -688,42 +723,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (isPassed) {
                     // SUDAH TERVERIFIKASI
-                    card.className = 'word-step-card px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl font-black transition-all shadow-md shadow-emerald-500/20 ring-2 ring-emerald-400/50 bg-emerald-500 text-white flex flex-col items-center gap-1 min-w-[105px] sm:min-w-[130px]';
+                    card.className = 'word-step-card px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl font-extrabold transition-all shadow-xs bg-emerald-500 text-white flex items-center gap-1.5 text-xs sm:text-sm';
                     card.innerHTML = `
-                        <div class="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full leading-none">
-                            <span class="material-symbols-outlined text-[11px]">check</span>
-                            <span>Selesai</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-xs font-mono opacity-80">${idx + 1}.</span>
-                            <span class="text-base sm:text-lg tracking-wider">${word}</span>
-                            <span class="material-symbols-outlined text-sm">check_circle</span>
-                        </div>
+                        <span class="text-[9px] font-mono bg-white/20 px-1.5 py-0.2 rounded-md">${idx + 1}</span>
+                        <span class="tracking-wide">${word}</span>
+                        <span class="material-symbols-outlined text-xs">check_circle</span>
                     `;
                 } else if (isCurrent) {
                     // SEDANG AKTIF (PERAGAKAN SEKARANG)
-                    card.className = 'word-step-card px-5 sm:px-6 py-2.5 sm:py-3 rounded-2xl font-black transition-all shadow-xl shadow-indigo-500/30 ring-4 ring-blue-400/60 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white flex flex-col items-center gap-1 min-w-[130px] sm:min-w-[160px] scale-105 transform word-step-active';
+                    card.className = 'word-step-card px-3.5 py-1.5 sm:px-4 sm:py-1.5 rounded-xl font-extrabold transition-all shadow-sm ring-2 ring-primary/40 bg-primary text-on-primary flex items-center gap-1.5 text-xs sm:text-sm word-step-active';
                     card.innerHTML = `
-                        <div class="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider bg-white/25 px-2.5 py-0.5 rounded-full leading-none">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                            <span>Peragakan Sekarang</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-5 h-5 rounded-full bg-white/25 text-white flex items-center justify-center text-xs font-black">${idx + 1}</span>
-                            <span class="text-lg sm:text-xl tracking-wider">${word}</span>
-                        </div>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span class="text-[9px] font-mono bg-white/25 px-1.5 py-0.2 rounded-md">${idx + 1}</span>
+                        <span class="tracking-wide">${word}</span>
                     `;
                 } else {
                     // MENUNGGU GILIRAN
-                    card.className = 'word-step-card px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl font-bold transition-all bg-surface-container-high text-on-surface-variant/75 border border-outline-variant/40 shadow-xs flex flex-col items-center gap-1 min-w-[105px] sm:min-w-[130px] opacity-75';
+                    card.className = 'word-step-card px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl font-semibold transition-all bg-surface-container-high text-on-surface-variant/80 border border-outline-variant/30 flex items-center gap-1.5 text-xs sm:text-sm opacity-80';
                     card.innerHTML = `
-                        <div class="text-[9px] font-bold uppercase tracking-wider bg-surface-container-highest text-on-surface-variant/70 px-2 py-0.5 rounded-full leading-none">
-                            <span>Kata ke-${idx + 1}</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-xs font-mono opacity-60">${idx + 1}.</span>
-                            <span class="text-sm sm:text-base tracking-wide">${word}</span>
-                        </div>
+                        <span class="text-[9px] font-mono bg-surface-container-highest text-on-surface-variant/70 px-1.5 py-0.2 rounded-md">${idx + 1}</span>
+                        <span class="tracking-wide">${word}</span>
                     `;
                 }
 
@@ -739,6 +758,11 @@ document.addEventListener('DOMContentLoaded', () => {
         resetInactivityTimer();
         const targetWord = subWords[currentSubWordIndex];
         currentSubWordIndex++;
+
+        // Reset buffer dan hold frames agar kata berikutnya dimulai dengan rekaman gerakan bersih
+        sequenceBuffer = [];
+        holdFrames = 0;
+        lastInferTime = performance.now() + 600;
 
         // Visual celebration toast
         if (successNotice && successNoticeText) {
@@ -887,7 +911,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // TENSORFLOW.JS: Ekstraksi Fitur & Model Deep Learning
     // ----------------------------------------------------
-    function extractLandmarkFeatures(multiHandLandmarks) {
+    function extractLandmarkFeatures(multiHandLandmarks, multiHandedness) {
+        if (!multiHandLandmarks || multiHandLandmarks.length === 0) {
+            return new Array(featureDimension === '126' ? 126 : (featureDimension === '42' ? 42 : 63)).fill(0.0);
+        }
+
         const hand = multiHandLandmarks[0];
         let rawFeatures = [];
 
@@ -896,10 +924,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 rawFeatures.push(hand[i].x, hand[i].y);
             }
         } else if (featureDimension === '126') {
+            let leftHand = null;
+            let rightHand = null;
+
+            if (multiHandedness && multiHandedness.length > 0 && multiHandLandmarks.length > 1) {
+                for (let i = 0; i < multiHandLandmarks.length; i++) {
+                    const label = multiHandedness[i]?.label;
+                    if (label === 'Left' && !leftHand) {
+                        leftHand = multiHandLandmarks[i];
+                    } else if (label === 'Right' && !rightHand) {
+                        rightHand = multiHandLandmarks[i];
+                    }
+                }
+            }
+
+            const firstHand = leftHand || multiHandLandmarks[0];
+            const secondHand = rightHand || (multiHandLandmarks.length > 1 && multiHandLandmarks[1] !== firstHand ? multiHandLandmarks[1] : null);
+
+            const hands = [firstHand, secondHand];
+
             for (let h = 0; h < 2; h++) {
-                if (multiHandLandmarks[h]) {
+                if (hands[h]) {
                     for (let i = 0; i < 21; i++) {
-                        rawFeatures.push(multiHandLandmarks[h][i].x, multiHandLandmarks[h][i].y, multiHandLandmarks[h][i].z);
+                        if (hands[h][i]) {
+                            rawFeatures.push(hands[h][i].x, hands[h][i].y, hands[h][i].z);
+                        } else {
+                            rawFeatures.push(0.0, 0.0, 0.0);
+                        }
                     }
                 } else {
                     for (let i = 0; i < 63; i++) rawFeatures.push(0.0);
@@ -920,24 +971,162 @@ document.addEventListener('DOMContentLoaded', () => {
         return rawFeatures;
     }
 
-    async function loadModel() {
-        if (aiModelStatus) aiModelStatus.textContent = 'Memuat Model TFJS...';
-        if (aiModelDot) aiModelDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
+    // ----------------------------------------------------
+    // Keras 3 GRU Direct Model Loader
+    // ----------------------------------------------------
+    async function loadKeras3GruModel(url) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
+        const modelJson = await res.json();
 
-        try {
-            tfModel = await tf.loadLayersModel(modelUrl);
-            onModelLoaded();
-        } catch (e) {
-            try {
-                tfModel = await tf.loadGraphModel(modelUrl);
-                onModelLoaded();
-            } catch (err) {
-                tfModel = null;
-                if (aiModelStatus) aiModelStatus.textContent = 'Model Belum Dimuat (Klik ⚙)';
-                if (aiModelDot) aiModelDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-400';
-                console.info('Model TFJS lokal belum ada di ' + modelUrl + '. Gunakan tombol ⚙ untuk konfigurasi URL model.');
-            }
+        const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
+        const manifest = modelJson.weightsManifest && modelJson.weightsManifest[0];
+        if (!manifest || !manifest.paths || !manifest.weights) {
+            throw new Error('Format weightsManifest tidak valid');
         }
+
+        const binUrl = baseUrl + manifest.paths[0];
+        const binRes = await fetch(binUrl);
+        if (!binRes.ok) throw new Error(`HTTP ${binRes.status} fetching ${binUrl}`);
+        const binBuffer = await binRes.arrayBuffer();
+
+        const weights = {};
+        let offset = 0;
+        for (const w of manifest.weights) {
+            const numElements = w.shape.reduce((a, b) => a * b, 1);
+            const byteLength = numElements * 4;
+            const sliceBuffer = binBuffer.slice(offset, offset + byteLength);
+            const floatArray = new Float32Array(sliceBuffer);
+            weights[w.name] = tf.tensor(floatArray, w.shape, 'float32');
+            offset += byteLength;
+        }
+
+        const getW = (key1, key2) => weights[key1] || weights[key2] || null;
+
+        const gruBias1 = getW('gru/gru_cell/bias', 'gru/bias');
+        const gruKernel1 = getW('gru/gru_cell/kernel', 'gru/kernel');
+        const gruRecKernel1 = getW('gru/gru_cell/recurrent_kernel', 'gru/recurrent_kernel');
+
+        const gruBias2 = getW('gru_1/gru_cell/bias', 'gru_1/bias');
+        const gruKernel2 = getW('gru_1/gru_cell/kernel', 'gru_1/kernel');
+        const gruRecKernel2 = getW('gru_1/gru_cell/recurrent_kernel', 'gru_1/recurrent_kernel');
+
+        const bnMean1 = getW('batch_normalization/moving_mean');
+        const bnVar1 = getW('batch_normalization/moving_variance');
+        const bnGamma1 = getW('batch_normalization/gamma');
+        const bnBeta1 = getW('batch_normalization/beta');
+
+        const bnMean2 = getW('batch_normalization_1/moving_mean');
+        const bnVar2 = getW('batch_normalization_1/moving_variance');
+        const bnGamma2 = getW('batch_normalization_1/gamma');
+        const bnBeta2 = getW('batch_normalization_1/beta');
+
+        const denseKernel = getW('dense/kernel');
+        const denseBias = getW('dense/bias');
+        const dense1Kernel = getW('dense_1/kernel');
+        const dense1Bias = getW('dense_1/bias');
+
+        if (!gruKernel1 || !gruBias1 || !gruKernel2 || !gruBias2) {
+            throw new Error('Bobot GRU tidak lengkap dalam manifest');
+        }
+
+        return {
+            inputs: [{ shape: [null, 30, 126] }],
+            isCustomGru: true,
+            weights: weights,
+            predict: function(inputTensor) {
+                return tf.tidy(() => {
+                    const seqLen = 30;
+                    const units1 = 128;
+                    let h1 = tf.zeros([1, units1]);
+                    const gru1Outputs = [];
+
+                    let bIn1, bRec1;
+                    if (gruBias1.shape.length === 2) {
+                        bIn1 = gruBias1.slice([0, 0], [1, 3 * units1]).reshape([3 * units1]);
+                        bRec1 = gruBias1.slice([1, 0], [1, 3 * units1]).reshape([3 * units1]);
+                    } else {
+                        bIn1 = gruBias1;
+                        bRec1 = tf.zeros([3 * units1]);
+                    }
+
+                    const unstacked = tf.unstack(inputTensor.reshape([seqLen, 126]));
+
+                    for (let t = 0; t < seqLen; t++) {
+                        const xt = unstacked[t].reshape([1, 126]);
+                        const xGate = tf.add(tf.matMul(xt, gruKernel1), bIn1);
+                        const hGate = tf.add(tf.matMul(h1, gruRecKernel1), bRec1);
+
+                        const [xz, xr, xh] = tf.split(xGate, 3, 1);
+                        const [hz, hr, hh] = tf.split(hGate, 3, 1);
+
+                        const z = tf.sigmoid(tf.add(xz, hz));
+                        const r = tf.sigmoid(tf.add(xr, hr));
+                        const cand = tf.tanh(tf.add(xh, tf.mul(r, hh)));
+
+                        h1 = tf.add(tf.mul(z, h1), tf.mul(tf.sub(1, z), cand));
+                        gru1Outputs.push(h1);
+                    }
+
+                    const gru1Seq = tf.stack(gru1Outputs, 1);
+
+                    const bn1 = tf.add(
+                        tf.mul(
+                            tf.div(
+                                tf.sub(gru1Seq, bnMean1),
+                                tf.sqrt(tf.add(bnVar1, 0.001))
+                            ),
+                            bnGamma1
+                        ),
+                        bnBeta1
+                    );
+
+                    const units2 = 64;
+                    let h2 = tf.zeros([1, units2]);
+                    let bIn2, bRec2;
+                    if (gruBias2.shape.length === 2) {
+                        bIn2 = gruBias2.slice([0, 0], [1, 3 * units2]).reshape([3 * units2]);
+                        bRec2 = gruBias2.slice([1, 0], [1, 3 * units2]).reshape([3 * units2]);
+                    } else {
+                        bIn2 = gruBias2;
+                        bRec2 = tf.zeros([3 * units2]);
+                    }
+
+                    const bn1Unstacked = tf.unstack(bn1.reshape([seqLen, units1]));
+
+                    for (let t = 0; t < seqLen; t++) {
+                        const xt = bn1Unstacked[t].reshape([1, units1]);
+                        const xGate = tf.add(tf.matMul(xt, gruKernel2), bIn2);
+                        const hGate = tf.add(tf.matMul(h2, gruRecKernel2), bRec2);
+
+                        const [xz, xr, xh] = tf.split(xGate, 3, 1);
+                        const [hz, hr, hh] = tf.split(hGate, 3, 1);
+
+                        const z = tf.sigmoid(tf.add(xz, hz));
+                        const r = tf.sigmoid(tf.add(xr, hr));
+                        const cand = tf.tanh(tf.add(xh, tf.mul(r, hh)));
+
+                        h2 = tf.add(tf.mul(z, h2), tf.mul(tf.sub(1, z), cand));
+                    }
+
+                    const bn2 = tf.add(
+                        tf.mul(
+                            tf.div(
+                                tf.sub(h2, bnMean2),
+                                tf.sqrt(tf.add(bnVar2, 0.001))
+                            ),
+                            bnGamma2
+                        ),
+                        bnBeta2
+                    );
+
+                    const d1 = tf.relu(tf.add(tf.matMul(bn2, denseKernel), denseBias));
+                    const out = tf.softmax(tf.add(tf.matMul(d1, dense1Kernel), dense1Bias));
+
+                    return out;
+                });
+            }
+        };
     }
 
     function onModelLoaded() {
@@ -947,9 +1136,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Auto-load metadata.json jika ada
         const metaUrl = modelUrl.replace('model.json', 'metadata.json');
         fetch(metaUrl)
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) return null;
+                return r.json();
+            })
             .then(meta => {
-                if (meta.labels && Array.isArray(meta.labels)) {
+                if (meta && meta.labels && Array.isArray(meta.labels)) {
                     classLabels = meta.labels;
                     if (classesInput) classesInput.value = classLabels.join(', ');
                 }
@@ -957,67 +1149,40 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(() => {});
     }
 
-    function predictAndVerifyGesture(features) {
-        if (isQuestionCompleted || !tfModel) return;
+    async function loadModel() {
+        if (aiModelStatus) aiModelStatus.textContent = 'Memuat Model TFJS...';
+        if (aiModelDot) aiModelDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
 
         try {
-            tf.tidy(() => {
-                const inputTensor = tf.tensor2d([features], [1, features.length]);
-                const outputTensor = tfModel.predict(inputTensor);
-                const scores = outputTensor.dataSync();
-
-                let maxIndex = 0;
-                let maxProb = scores[0];
-
-                for (let i = 0; i < scores.length; i++) {
-                    if (scores[i] > maxProb) {
-                        maxProb = scores[i];
-                        maxIndex = i;
-                    }
+            if (typeof tf !== 'undefined') {
+                await tf.ready();
+                if (tf.findBackend('webgl')) {
+                    await tf.setBackend('webgl');
                 }
-
-                const predictedClass = (classLabels[maxIndex] || `Kelas ${maxIndex + 1}`).trim().toUpperCase();
-                const confPercent = Math.round(maxProb * 100);
-
-                // Update Live AI Prediction HUD Badge
-                if (liveAiPredictionBadge && liveAiPredText) {
-                    liveAiPredictionBadge.classList.remove('hidden');
-                    liveAiPredictionBadge.classList.add('flex');
-                    liveAiPredText.textContent = `${predictedClass} (${confPercent}%)`;
+            }
+            // Prioritaskan Direct Runner untuk Keras 3 GRU sequential model yang kompatibel dengan bobot model.json
+            tfModel = await loadKeras3GruModel(modelUrl);
+            onModelLoaded();
+            console.log('Model Keras 3 GRU berhasil dimuat via Direct Runner:', modelUrl, tfModel);
+        } catch (e) {
+            console.warn('Direct runner tidak cocok, mencoba tf.loadLayersModel...', e);
+            try {
+                tfModel = await tf.loadLayersModel(modelUrl);
+                onModelLoaded();
+                console.log('Model TFJS berhasil dimuat via LayersModel:', modelUrl, tfModel);
+            } catch (err2) {
+                console.warn('Gagal memuat via layers model, mencoba graph model...', err2);
+                try {
+                    tfModel = await tf.loadGraphModel(modelUrl);
+                    onModelLoaded();
+                    console.log('Model TFJS berhasil dimuat via GraphModel:', modelUrl, tfModel);
+                } catch (err3) {
+                    tfModel = null;
+                    if (aiModelStatus) aiModelStatus.textContent = 'Model Belum Dimuat (Klik ⚙)';
+                    if (aiModelDot) aiModelDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-400';
+                    console.info('Model TFJS lokal belum ada di ' + modelUrl + '. Gunakan tombol ⚙ untuk konfigurasi URL model.');
                 }
-
-                // TARGET MATCHING: Bandingkan prediksi AI dengan target kata saat ini
-                const targetWord = (subWords[currentSubWordIndex] || '').trim().toUpperCase();
-
-                if (predictedClass === targetWord && maxProb >= confidenceThreshold) {
-                    // Isyarat tangan sesuai target & di atas threshold!
-                    if (holdProgressWrapper) holdProgressWrapper.classList.remove('hidden');
-                    holdFrames++;
-                    const progress = Math.min(100, Math.round((holdFrames / HOLD_FRAMES_TARGET) * 100));
-                    if (holdProgressBar) holdProgressBar.style.width = `${progress}%`;
-                    if (bottomHintText) {
-                        bottomHintText.textContent = `Isyarat Cocok! Tahan pose: "${predictedClass}" (${confPercent}%)`;
-                        bottomHintText.className = 'text-[11px] text-emerald-300 bg-black/80 px-3.5 py-1 rounded-full backdrop-blur-md border border-emerald-500/30';
-                    }
-
-                    if (holdFrames >= HOLD_FRAMES_TARGET) {
-                        holdFrames = 0;
-                        if (holdProgressBar) holdProgressBar.style.width = '0%';
-                        if (holdProgressWrapper) holdProgressWrapper.classList.add('hidden');
-                        verifyCurrentSubWord(predictedClass, confPercent);
-                    }
-                } else {
-                    // Belum cocok atau belum di atas threshold
-                    if (holdFrames > 0) holdFrames--;
-                    if (holdProgressBar) holdProgressBar.style.width = `${Math.round((holdFrames / HOLD_FRAMES_TARGET) * 100)}%`;
-                    if (bottomHintText) {
-                        bottomHintText.textContent = `Target: "${targetWord}" · Terdeteksi AI: ${predictedClass} (${confPercent}%)`;
-                        bottomHintText.className = 'text-[11px] text-white/90 bg-black/60 px-3.5 py-1 rounded-full backdrop-blur-md border border-white/10';
-                    }
-                }
-            });
-        } catch (err) {
-            console.error('Error inferensi TensorFlow.js:', err);
+            }
         }
     }
 
@@ -1082,7 +1247,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             handsDetector.setOptions({
                 maxNumHands: 2,
-                modelComplexity: 1,
+                modelComplexity: 0, // 0 = Lite (Cepat & Ringan)
                 minDetectionConfidence: 0.5,
                 minTrackingConfidence: 0.5
             });
@@ -1094,7 +1259,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function onHandResults(results) {
-        isProcessingFrame = false;
         if (!isCameraRunning || !canvasCtx) return;
 
         // Sesuaikan canvas
@@ -1135,29 +1299,134 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            handLostFrames = 0;
             // Ekstraksi fitur landmark koordinat tangan
-            const features = extractLandmarkFeatures(results.multiHandLandmarks);
+            const features = extractLandmarkFeatures(results.multiHandLandmarks, results.multiHandedness);
 
-            // Verifikasi menggunakan Model Deep Learning TensorFlow.js
-            if (tfModel && features.length > 0) {
-                predictAndVerifyGesture(features);
-            } else {
-                // Jika model TFJS belum dimuat, tampilkan petunjuk
+            // Selalu tambahkan ke sequence buffer untuk menjaga kontinuitas waktu gerakan
+            sequenceBuffer.push(features);
+            if (sequenceBuffer.length > SEQUENCE_LENGTH) {
+                sequenceBuffer.shift();
+            }
+
+            // Verifikasi menggunakan Model Deep Learning (Asinkronus & Throttled agar 30+ FPS)
+            if (tfModel && sequenceBuffer.length >= 8 && !isQuestionCompleted) {
+                const nowTime = performance.now();
+                if (!isInferring && (nowTime - lastInferTime >= INFER_INTERVAL_MS)) {
+                    lastInferTime = nowTime;
+                    isInferring = true;
+                    setTimeout(() => {
+                        try {
+                            predictAndVerifyGesture();
+                        } finally {
+                            isInferring = false;
+                        }
+                    }, 0);
+                }
+            } else if (!tfModel) {
                 if (liveAiPredictionBadge) liveAiPredictionBadge.classList.add('hidden');
                 if (bottomHintText) bottomHintText.textContent = 'Menunggu model TensorFlow.js dimuat (Klik ⚙ jika perlu ubah path model)';
             }
         } else {
-            holdFrames = 0;
-            if (holdProgressBar) holdProgressBar.style.width = '0%';
-            if (holdProgressWrapper) holdProgressWrapper.classList.add('hidden');
-            if (liveAiPredictionBadge) liveAiPredictionBadge.classList.add('hidden');
-            if (bottomHintText) {
-                bottomHintText.textContent = 'Arahkan tangan ke kamera dan peragakan kata yang disorot';
-                bottomHintText.className = 'text-[11px] text-white/90 bg-black/60 px-3.5 py-1 rounded-full backdrop-blur-md border border-white/10';
+            handLostFrames++;
+            // Ketika tangan benar-benar hilang melampaui toleransi, baru reset sequenceBuffer
+            if (handLostFrames >= HAND_LOST_TOLERANCE) {
+                sequenceBuffer = [];
+                holdFrames = 0;
+                if (holdProgressBar) holdProgressBar.style.width = '0%';
+                if (holdProgressWrapper) holdProgressWrapper.classList.add('hidden');
+                if (liveAiPredictionBadge) liveAiPredictionBadge.classList.add('hidden');
+                if (bottomHintText) {
+                    bottomHintText.textContent = 'Arahkan tangan ke kamera dan peragakan kata yang disorot';
+                    bottomHintText.className = 'text-[11px] text-white/90 bg-black/60 px-3.5 py-1 rounded-full backdrop-blur-md border border-white/10';
+                }
             }
         }
 
         canvasCtx.restore();
+    }
+
+    function predictAndVerifyGesture() {
+        if (isQuestionCompleted || !tfModel || sequenceBuffer.length === 0) return;
+
+        try {
+            tf.tidy(() => {
+                let inputTensor;
+                const inputShape = tfModel.inputs && tfModel.inputs[0] ? tfModel.inputs[0].shape : null;
+
+                if (inputShape && inputShape.length === 3) {
+                    const targetSeqLen = inputShape[1] || SEQUENCE_LENGTH;
+                    const targetFeatLen = inputShape[2] || (featureDimension === '126' ? 126 : 63);
+                    
+                    let seq = [...sequenceBuffer];
+                    while (seq.length < targetSeqLen) {
+                        seq.unshift(seq.length > 0 ? seq[0] : new Array(targetFeatLen).fill(0));
+                    }
+                    if (seq.length > targetSeqLen) {
+                        seq = seq.slice(-targetSeqLen);
+                    }
+                    inputTensor = tf.tensor3d([seq], [1, targetSeqLen, targetFeatLen]);
+                } else {
+                    const latestFeat = sequenceBuffer[sequenceBuffer.length - 1];
+                    inputTensor = tf.tensor2d([latestFeat], [1, latestFeat.length]);
+                }
+
+                const outputTensor = tfModel.predict(inputTensor);
+                const scores = outputTensor.dataSync();
+
+                let maxIndex = 0;
+                let maxProb = scores[0];
+
+                for (let i = 0; i < scores.length; i++) {
+                    if (scores[i] > maxProb) {
+                        maxProb = scores[i];
+                        maxIndex = i;
+                    }
+                }
+
+                const predictedClass = (classLabels[maxIndex] || `Kelas ${maxIndex + 1}`).trim().toUpperCase();
+                const confPercent = Math.round(maxProb * 100);
+
+                // Update Live AI Prediction HUD Badge
+                if (liveAiPredictionBadge && liveAiPredText) {
+                    liveAiPredictionBadge.classList.remove('hidden');
+                    liveAiPredictionBadge.classList.add('flex');
+                    liveAiPredText.textContent = `${predictedClass} (${confPercent}%)`;
+                }
+
+                // TARGET MATCHING: Bandingkan prediksi AI dengan target kata saat ini
+                const targetWord = (subWords[currentSubWordIndex] || '').trim().toUpperCase();
+
+                if (predictedClass === targetWord && maxProb >= confidenceThreshold) {
+                    // Isyarat tangan sesuai target & di atas threshold!
+                    if (holdProgressWrapper) holdProgressWrapper.classList.remove('hidden');
+                    holdFrames++;
+                    const progress = Math.min(100, Math.round((holdFrames / HOLD_FRAMES_TARGET) * 100));
+                    if (holdProgressBar) holdProgressBar.style.width = `${progress}%`;
+                    if (bottomHintText) {
+                        bottomHintText.textContent = `Isyarat Cocok! Tahan pose: "${predictedClass}" (${confPercent}%)`;
+                        bottomHintText.className = 'text-[11px] text-emerald-300 bg-black/80 px-3.5 py-1 rounded-full backdrop-blur-md border border-emerald-500/30';
+                    }
+
+                    if (holdFrames >= HOLD_FRAMES_TARGET) {
+                        holdFrames = 0;
+                        if (holdProgressBar) holdProgressBar.style.width = '0%';
+                        if (holdProgressWrapper) holdProgressWrapper.classList.add('hidden');
+                        verifyCurrentSubWord(predictedClass, confPercent);
+                    }
+                } else {
+                    // Belum cocok atau belum di atas threshold
+                    if (holdFrames > 0) holdFrames--;
+                    if (holdProgressBar) holdProgressBar.style.width = `${Math.round((holdFrames / HOLD_FRAMES_TARGET) * 100)}%`;
+                    if (bottomHintText) {
+                        bottomHintText.textContent = `Target: "${targetWord}" · Terdeteksi AI: ${predictedClass} (${confPercent}%)`;
+                        bottomHintText.className = 'text-[11px] text-white/90 bg-black/60 px-3.5 py-1 rounded-full backdrop-blur-md border border-white/10';
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error inferensi TensorFlow.js:', err);
+        }
     }
 
     async function startCamera() {
@@ -1168,6 +1437,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 video: {
                     width: { ideal: 640 },
                     height: { ideal: 480 },
+                    frameRate: { ideal: 30, max: 30 },
                     facingMode: 'user'
                 },
                 audio: false
@@ -1203,8 +1473,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (handsDetector && video && video.readyState >= 2 && !isProcessingFrame) {
                 isProcessingFrame = true;
                 try {
-                    await handsDetector.send({ image: video });
+                    procCtx.drawImage(video, 0, 0, procCanvas.width, procCanvas.height);
+                    await handsDetector.send({ image: procCanvas });
                 } catch (e) {
+                    // ignore frame drop
+                } finally {
                     isProcessingFrame = false;
                 }
             }

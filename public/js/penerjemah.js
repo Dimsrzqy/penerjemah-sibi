@@ -1,8 +1,3 @@
-/**
- * ============================================================
- * SIBI LEARN - PENERJEMAH SIBI JAVASCRIPT
- * ============================================================
- */
 
 document.addEventListener('DOMContentLoaded', () => {
     // Elements
@@ -49,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCloseSettings = document.getElementById('btnCloseSettings');
     const btnCancelSettings = document.getElementById('btnCancelSettings');
     const btnSaveSettings = document.getElementById('btnSaveSettings');
-    const landmarkDimSelect = document.getElementById('landmarkDimSelect');
     const modelUrlInput = document.getElementById('modelUrlInput');
     const classesInput = document.getElementById('classesInput');
     const thresholdSlider = document.getElementById('thresholdSlider');
@@ -66,15 +60,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // AI State
     let tfModel = null;
-    let modelUrl = '/models/sibi_model/model.json';
+    let modelUrl = '/models/tfjs_model/model.json';
     let confidenceThreshold = 0.70;
-    let featureDimension = '63'; // '63' | '42' | '126' | 'normalized_wrist'
-    let classLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'TERIMA KASIH', 'HALO', 'SAMA-SAMA'];
+    let classLabels = [
+        'ADIK', 'APA', 'AYAH', 'BAIK', 'BERAPA', 'BERTEMU', 'CANTIK', 'DARI', 'DIA', 'DIMANA',
+        'GANTENG', 'GEMUK', 'HALLO', 'HOBI', 'IBU', 'JUMAT', 'JURUSAN', 'KABAR', 'KAKEK', 'KALIAN',
+        'KAMI', 'KAMIS', 'KAMPUS', 'KAMU', 'KELAS', 'KELUARGA', 'KEMANA', 'KENAPA', 'KITA', 'KULIAH',
+        'KURUS', 'LUCU', 'MALAM', 'MAU', 'MEREKA', 'MINGGU', 'NAMA', 'PAGI', 'PELIT', 'PENDIDIKAN',
+        'PINTAR', 'PULANG', 'RABU', 'SABAR', 'SABTU', 'SAKIT', 'SAMPAI JUMPA', 'SAYA', 'SEKOLAH', 'SELAMAT',
+        'SELASA', 'SEMESTER', 'SENANG', 'SENIN', 'SIANG', 'SIAPA', 'SORE', 'TERIMAKASIH', 'TINGGAL', 'UMUR'
+    ];
+    let sequenceBuffer = [];
+    const SEQUENCE_LENGTH = 30;
+    
+    // Toleransi deteksi tangan hilang sesaat (flicker) agar buffer 30 frame tidak langsung terhapus
+    let handLostFrames = 0;
+    const HAND_LOST_TOLERANCE = 8; // ~300ms toleransi sebelum buffer di-reset total
+
+    // Inference Throttler
+    let lastInferTime = 0;
+    const INFER_INTERVAL_MS = 100;
+    let isInferring = false;
+
+    // Offscreen Processing Canvas
+    let procCanvas = document.createElement('canvas');
+    let procCtx = procCanvas.getContext('2d', { willReadFrequently: true });
+    procCanvas.width = 360;
+    procCanvas.height = 270;
 
     // Auto-Type Dwell Logic
     let lastStableWord = '';
     let stableWordCount = 0;
-    const DWELL_FRAMES_REQUIRED = 18;
+    let lastCommittedWord = '';
+    const DWELL_FRAMES_REQUIRED = 8; // Lebih responsif (8 frame berturut-turut)
     let currentSentence = '';
 
     // FPS Tracker
@@ -110,10 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
-    // 2. Callback Menggambar Landmark Skeleton
+    // 2. Callback Menggambar Landmark Skeleton & Buffer
     // ----------------------------------------------------
     function onHandResults(results) {
-        isProcessingFrame = false;
         if (!isCameraRunning) return;
 
         // FPS Tracker
@@ -125,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
             lastFpsTime = now;
         }
 
-        // Sesuaikan resolusi internal canvas dengan video
         if (video && skeletonCanvas && video.videoWidth > 0 && (skeletonCanvas.width !== video.videoWidth || skeletonCanvas.height !== video.videoHeight)) {
             skeletonCanvas.width = video.videoWidth;
             skeletonCanvas.height = video.videoHeight;
@@ -133,7 +149,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!canvasCtx) return;
 
-        // Bersihkan canvas setiap frame
         canvasCtx.save();
         canvasCtx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
 
@@ -143,7 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (hasHands) {
-            // Gambar Garis Skeleton & Titik Sendi (Warna Terang Berkilau)
             if (showSkeleton) {
                 for (const landmarks of results.multiHandLandmarks) {
                     if (typeof drawConnectors !== 'undefined' && typeof HAND_CONNECTIONS !== 'undefined') {
@@ -162,71 +176,97 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
+        }
 
-            // Ekstraksi Fitur Landmark
-            const features = extractLandmarkFeatures(results.multiHandLandmarks);
+        handLostFrames = hasHands ? 0 : handLostFrames + 1;
+        const features = hasHands
+            ? extractLandmarkFeatures(results.multiHandLandmarks, results.multiHandedness)
+            : new Array(126).fill(0.0);
+        sequenceBuffer.push(features);
+        if (sequenceBuffer.length > SEQUENCE_LENGTH) {
+            sequenceBuffer.shift();
+        }
 
-            // Prediksi jika model TFJS sudah ada
-            if (tfModel && features.length > 0) {
-                predictSignGesture(features);
-            } else {
-                if (liveDetectedText) liveDetectedText.textContent = '-';
-                if (detectedCategory) detectedCategory.textContent = 'Landmark Tangan Aktif (Menunggu model.json)';
+        if (hasHands && tfModel && sequenceBuffer.length >= SEQUENCE_LENGTH) {
+            const nowTime = performance.now();
+            if (!isInferring && (nowTime - lastInferTime >= INFER_INTERVAL_MS)) {
+                lastInferTime = nowTime;
+                isInferring = true;
+                setTimeout(() => {
+                    try {
+                        predictSignGesture();
+                    } finally {
+                        isInferring = false;
+                    }
+                }, 0);
             }
-        } else {
+        } else if (hasHands) {
+            if (liveDetectedText && liveDetectedText.textContent === '-') {
+                liveDetectedText.textContent = '...';
+            }
+            if (detectedCategory) {
+                detectedCategory.textContent = `Merekam gerakan (${sequenceBuffer.length}/${SEQUENCE_LENGTH})...`;
+            }
+        }
+
+        if (!hasHands && handLostFrames >= HAND_LOST_TOLERANCE) {
+            sequenceBuffer = [];
             if (liveDetectedText) liveDetectedText.textContent = '-';
             if (detectedCategory) detectedCategory.textContent = 'Arahkan tangan ke kamera...';
-            if (confidenceBadge) confidenceBadge.textContent = '-';
+            if (confidenceBadge) {
+                confidenceBadge.textContent = '-';
+                confidenceBadge.className = 'text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-surface-container text-primary';
+            }
             if (holdProgressBar) holdProgressBar.style.width = '0%';
             stableWordCount = 0;
+            lastStableWord = '';
+            lastCommittedWord = '';
         }
 
         canvasCtx.restore();
     }
 
     // ----------------------------------------------------
-    // 3. Ekstraksi Fitur Landmark
+    // 3. Ekstraksi Fitur Landmark (100% Identik dengan Python)
     // ----------------------------------------------------
-    function extractLandmarkFeatures(multiHandLandmarks) {
-        const hand = multiHandLandmarks[0];
-        let rawFeatures = [];
+    function extractLandmarkFeatures(multiHandLandmarks, multiHandedness) {
+        if (!multiHandLandmarks || multiHandLandmarks.length === 0) {
+            return new Array(126).fill(0.0);
+        }
 
-        if (featureDimension === '42') {
-            for (let i = 0; i < hand.length; i++) {
-                rawFeatures.push(hand[i].x, hand[i].y);
+        let lh = new Array(63).fill(0.0);
+        let rh = new Array(63).fill(0.0);
+
+        for (let i = 0; i < multiHandLandmarks.length; i++) {
+            const landmarks = multiHandLandmarks[i];
+            let handednessLabel = multiHandedness && multiHandedness[i] ? multiHandedness[i].label : 'Right';
+
+            let coords = [];
+            for (let lm of landmarks) {
+                coords.push(lm.x, lm.y, lm.z);
             }
-        } else if (featureDimension === '126') {
-            for (let h = 0; h < 2; h++) {
-                if (multiHandLandmarks[h]) {
-                    for (let i = 0; i < 21; i++) {
-                        rawFeatures.push(multiHandLandmarks[h][i].x, multiHandLandmarks[h][i].y, multiHandLandmarks[h][i].z);
-                    }
-                } else {
-                    for (let i = 0; i < 63; i++) rawFeatures.push(0.0);
-                }
-            }
-        } else if (featureDimension === 'normalized_wrist') {
-            const wrist = hand[0];
-            for (let i = 0; i < hand.length; i++) {
-                rawFeatures.push(hand[i].x - wrist.x, hand[i].y - wrist.y, hand[i].z - wrist.z);
-            }
-        } else {
-            // Default 63 fitur: 21 titik x, y, z
-            for (let i = 0; i < hand.length; i++) {
-                rawFeatures.push(hand[i].x, hand[i].y, hand[i].z);
+
+            if (handednessLabel === 'Left') {
+                lh = coords;
+            } else {
+                rh = coords;
             }
         }
 
-        return rawFeatures;
+        return [...lh, ...rh];
     }
 
     // ----------------------------------------------------
     // 4. Prediksi TensorFlow.js
     // ----------------------------------------------------
-    function predictSignGesture(features) {
+    function predictSignGesture() {
+        if (!tfModel || sequenceBuffer.length < SEQUENCE_LENGTH) return;
+
         try {
             tf.tidy(() => {
-                const inputTensor = tf.tensor2d([features], [1, features.length]);
+                const targetFeatLen = 126;
+                const seq = sequenceBuffer.slice(-SEQUENCE_LENGTH);
+                const inputTensor = tf.tensor3d([seq], [1, SEQUENCE_LENGTH, targetFeatLen]);
                 const outputTensor = tfModel.predict(inputTensor);
                 const scores = outputTensor.dataSync();
 
@@ -262,16 +302,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (toggleAutoType && toggleAutoType.checked) {
                         if (topClass === lastStableWord) {
-                            stableWordCount++;
+                            stableWordCount = Math.min(stableWordCount + 1, DWELL_FRAMES_REQUIRED + 1);
                             const progress = Math.min(100, Math.round((stableWordCount / DWELL_FRAMES_REQUIRED) * 100));
                             if (holdProgressBar) holdProgressBar.style.width = `${progress}%`;
 
                             if (stableWordCount === DWELL_FRAMES_REQUIRED) {
-                                appendWordToSentence(topClass);
-                                if (liveDetectedText) {
-                                    liveDetectedText.classList.add('scale-110');
-                                    setTimeout(() => liveDetectedText.classList.remove('scale-110'), 200);
+                                if (lastCommittedWord !== topClass.toUpperCase()) {
+                                    appendWordToSentence(topClass);
+                                    lastCommittedWord = topClass.toUpperCase();
+                                    if (liveDetectedText) {
+                                        liveDetectedText.classList.add('scale-110');
+                                        setTimeout(() => liveDetectedText.classList.remove('scale-110'), 200);
+                                    }
                                 }
+                                stableWordCount = DWELL_FRAMES_REQUIRED + 1;
                             }
                         } else {
                             lastStableWord = topClass;
@@ -326,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 video: {
                     width: { ideal: 640 },
                     height: { ideal: 480 },
+                    frameRate: { ideal: 30, max: 30 },
                     facingMode: 'user'
                 },
                 audio: false
@@ -336,7 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             isCameraRunning = true;
 
-            // Tampilkan elemen Video dan Canvas Skeleton
             if (video) video.classList.remove('hidden');
             if (skeletonCanvas) skeletonCanvas.classList.remove('hidden');
             if (standbyImg) standbyImg.classList.add('hidden');
@@ -365,9 +409,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (handsDetector && video && video.readyState >= 2 && !isProcessingFrame) {
                 isProcessingFrame = true;
                 try {
-                    await handsDetector.send({ image: video });
+                    procCtx.drawImage(video, 0, 0, procCanvas.width, procCanvas.height);
+                    await handsDetector.send({ image: procCanvas });
                 } catch (e) {
                     console.warn('Gagal memproses frame MediaPipe:', e);
+                } finally {
                     isProcessingFrame = false;
                 }
             }
@@ -390,7 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (video) video.srcObject = null;
 
-        // Reset Tampilan
         if (video) video.classList.add('hidden');
         if (skeletonCanvas) skeletonCanvas.classList.add('hidden');
         if (standbyImg) standbyImg.classList.remove('hidden');
@@ -453,6 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const text = liveDetectedText ? liveDetectedText.textContent.trim() : '';
             if (text && text !== '-' && text !== '...') {
                 appendWordToSentence(text);
+                lastCommittedWord = text.toUpperCase();
             }
         });
     }
@@ -493,7 +539,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Text-To-Speech
     if (btnSpeech) {
         btnSpeech.addEventListener('click', () => {
             const text = currentSentence.trim();
@@ -520,22 +565,233 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
-    // 7. Load Model TFJS
+    // 7. Load Model Keras 3 GRU via Custom Runner / LayersModel
     // ----------------------------------------------------
-    async function loadModel() {
-        try {
-            tfModel = await tf.loadLayersModel(modelUrl);
-            if (hudStatusText) hudStatusText.textContent = 'Model TFJS Siap';
-            if (hudStatusDot) hudStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
-        } catch (e) {
+    async function loadKeras3GruModel(url) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
+        const modelJson = await res.json();
+
+        const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
+        const manifest = modelJson.weightsManifest && modelJson.weightsManifest[0];
+        if (!manifest || !manifest.paths || !manifest.weights) {
+            throw new Error('Format weightsManifest tidak valid');
+        }
+
+        const binUrl = baseUrl + manifest.paths[0];
+        const binRes = await fetch(binUrl);
+        if (!binRes.ok) throw new Error(`HTTP ${binRes.status} fetching ${binUrl}`);
+        const binBuffer = await binRes.arrayBuffer();
+
+        const weights = {};
+        let offset = 0;
+        for (const w of manifest.weights) {
+            const numElements = w.shape.reduce((a, b) => a * b, 1);
+            const byteLength = numElements * 4;
+            const sliceBuffer = binBuffer.slice(offset, offset + byteLength);
+            const floatArray = new Float32Array(sliceBuffer);
+            weights[w.name] = tf.tensor(floatArray, w.shape, 'float32');
+            offset += byteLength;
+        }
+
+        const getW = (key1, key2) => weights[key1] || weights[key2] || null;
+
+        const gruBias1 = getW('gru/gru_cell/bias', 'gru/bias');
+        const gruKernel1 = getW('gru/gru_cell/kernel', 'gru/kernel');
+        const gruRecKernel1 = getW('gru/gru_cell/recurrent_kernel', 'gru/recurrent_kernel');
+
+        const gruBias2 = getW('gru_1/gru_cell/bias', 'gru_1/bias');
+        const gruKernel2 = getW('gru_1/gru_cell/kernel', 'gru_1/kernel');
+        const gruRecKernel2 = getW('gru_1/gru_cell/recurrent_kernel', 'gru_1/recurrent_kernel');
+
+        const bnMean1 = getW('batch_normalization/moving_mean');
+        const bnVar1 = getW('batch_normalization/moving_variance');
+        const bnGamma1 = getW('batch_normalization/gamma');
+        const bnBeta1 = getW('batch_normalization/beta');
+
+        const bnMean2 = getW('batch_normalization_1/moving_mean');
+        const bnVar2 = getW('batch_normalization_1/moving_variance');
+        const bnGamma2 = getW('batch_normalization_1/gamma');
+        const bnBeta2 = getW('batch_normalization_1/beta');
+
+        const denseKernel = getW('dense/kernel');
+        const denseBias = getW('dense/bias');
+        const dense1Kernel = getW('dense_1/kernel');
+        const dense1Bias = getW('dense_1/bias');
+
+        if (!gruKernel1 || !gruBias1 || !gruKernel2 || !gruBias2) {
+            throw new Error('Bobot GRU tidak lengkap dalam manifest');
+        }
+
+        return {
+            inputs: [{ shape: [null, 30, 126] }],
+            isCustomGru: true,
+            weights: weights,
+            predict: function (inputTensor) {
+                return tf.tidy(() => {
+                    const seqLen = 30;
+                    const units1 = 128;
+                    let h1 = tf.zeros([1, units1]);
+                    const gru1Outputs = [];
+
+                    let bIn1, bRec1;
+                    if (gruBias1.shape.length === 2) {
+                        bIn1 = gruBias1.slice([0, 0], [1, 3 * units1]).reshape([3 * units1]);
+                        bRec1 = gruBias1.slice([1, 0], [1, 3 * units1]).reshape([3 * units1]);
+                    } else {
+                        bIn1 = gruBias1;
+                        bRec1 = tf.zeros([3 * units1]);
+                    }
+
+                    const unstacked = tf.unstack(inputTensor.reshape([seqLen, 126]));
+
+                    for (let t = 0; t < seqLen; t++) {
+                        const xt = unstacked[t].reshape([1, 126]);
+                        const xGate = tf.add(tf.matMul(xt, gruKernel1), bIn1);
+                        const hGate = tf.add(tf.matMul(h1, gruRecKernel1), bRec1);
+
+                        const [xz, xr, xh] = tf.split(xGate, 3, 1);
+                        const [hz, hr, hh] = tf.split(hGate, 3, 1);
+
+                        const z = tf.sigmoid(tf.add(xz, hz));
+                        const r = tf.sigmoid(tf.add(xr, hr));
+                        const cand = tf.tanh(tf.add(xh, tf.mul(r, hh)));
+
+                        h1 = tf.add(tf.mul(z, h1), tf.mul(tf.sub(1, z), cand));
+                        gru1Outputs.push(h1);
+                    }
+
+                    const gru1Seq = tf.stack(gru1Outputs, 1);
+
+                    const bn1 = tf.add(
+                        tf.mul(
+                            tf.div(
+                                tf.sub(gru1Seq, bnMean1),
+                                tf.sqrt(tf.add(bnVar1, 0.001))
+                            ),
+                            bnGamma1
+                        ),
+                        bnBeta1
+                    );
+
+                    const units2 = 64;
+                    let h2 = tf.zeros([1, units2]);
+                    let bIn2, bRec2;
+                    if (gruBias2.shape.length === 2) {
+                        bIn2 = gruBias2.slice([0, 0], [1, 3 * units2]).reshape([3 * units2]);
+                        bRec2 = gruBias2.slice([1, 0], [1, 3 * units2]).reshape([3 * units2]);
+                    } else {
+                        bIn2 = gruBias2;
+                        bRec2 = tf.zeros([3 * units2]);
+                    }
+
+                    const bn1Unstacked = tf.unstack(bn1.reshape([seqLen, units1]));
+
+                    for (let t = 0; t < seqLen; t++) {
+                        const xt = bn1Unstacked[t].reshape([1, units1]);
+                        const xGate = tf.add(tf.matMul(xt, gruKernel2), bIn2);
+                        const hGate = tf.add(tf.matMul(h2, gruRecKernel2), bRec2);
+
+                        const [xz, xr, xh] = tf.split(xGate, 3, 1);
+                        const [hz, hr, hh] = tf.split(hGate, 3, 1);
+
+                        const z = tf.sigmoid(tf.add(xz, hz));
+                        const r = tf.sigmoid(tf.add(xr, hr));
+                        const cand = tf.tanh(tf.add(xh, tf.mul(r, hh)));
+
+                        h2 = tf.add(tf.mul(z, h2), tf.mul(tf.sub(1, z), cand));
+                    }
+
+                    const bn2 = tf.add(
+                        tf.mul(
+                            tf.div(
+                                tf.sub(h2, bnMean2),
+                                tf.sqrt(tf.add(bnVar2, 0.001))
+                            ),
+                            bnGamma2
+                        ),
+                        bnBeta2
+                    );
+
+                    const d1 = tf.relu(tf.add(tf.matMul(bn2, denseKernel), denseBias));
+                    const out = tf.softmax(tf.add(tf.matMul(d1, dense1Kernel), dense1Bias));
+
+                    return out;
+                });
+            }
+        };
+    }
+
+    function onModelLoaded() {
+        if (hudStatusText) hudStatusText.textContent = 'Model TFJS Siap';
+        if (hudStatusDot) hudStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
+        if (detectedCategory) detectedCategory.textContent = 'Model Siap (Arahkan tangan)';
+    }
+
+    async function loadLabels() {
+        const candidateUrls = [
+            modelUrl.replace('model.json', 'label_map.json'),
+            modelUrl.replace('model.json', 'metadata.json'),
+            '/models/tfjs_model/label_map.json',
+            '/models/tfjs_model/metadata.json'
+        ];
+
+        for (const url of candidateUrls) {
             try {
-                tfModel = await tf.loadGraphModel(modelUrl);
-                if (hudStatusText) hudStatusText.textContent = 'Model TFJS Siap';
-                if (hudStatusDot) hudStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
-            } catch (err) {
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    let labels = null;
+                    if (Array.isArray(data)) {
+                        labels = data;
+                    } else if (data && data.labels && Array.isArray(data.labels)) {
+                        labels = data.labels;
+                    } else if (data && typeof data === 'object') {
+                        const keys = Object.keys(data);
+                        if (keys.length > 0) {
+                            if (typeof data[keys[0]] === 'number') {
+                                labels = keys.sort((a, b) => data[a] - data[b]);
+                            } else {
+                                labels = keys.sort((a, b) => Number(a) - Number(b)).map(k => data[k]);
+                            }
+                        }
+                    }
+                    if (labels && labels.length > 0) {
+                        classLabels = labels;
+                        if (classesInput) classesInput.value = classLabels.join(', ');
+                        console.log(`Label berhasil dimuat dari ${url} (${classLabels.length} kelas)`);
+                        return;
+                    }
+                }
+            } catch (e) {}
+        }
+    }
+
+    async function loadModel() {
+        if (hudStatusText) hudStatusText.textContent = 'Memuat Model TFJS...';
+        if (hudStatusDot) hudStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
+
+        try {
+            if (typeof tf !== 'undefined') {
+                await tf.ready();
+                if (tf.findBackend('webgl')) {
+                    await tf.setBackend('webgl');
+                }
+            }
+            await loadLabels();
+            tfModel = await loadKeras3GruModel(modelUrl);
+            onModelLoaded();
+            console.log('Model Keras 3 GRU berhasil dimuat.');
+        } catch (e) {
+            console.warn('Mencoba loadLayersModel...', e);
+            try {
+                tfModel = await tf.loadLayersModel(modelUrl);
+                onModelLoaded();
+            } catch (err2) {
                 tfModel = null;
-                if (hudStatusText) hudStatusText.textContent = 'MediaPipe Hands Siap';
-                if (hudStatusDot) hudStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+                if (hudStatusText) hudStatusText.textContent = 'Gagal Memuat Model';
+                if (hudStatusDot) hudStatusDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500';
+                console.error('Model TFJS gagal dimuat:', err2);
             }
         }
     }
@@ -577,7 +833,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnOpenSettings) {
         btnOpenSettings.addEventListener('click', () => {
             if (modelUrlInput) modelUrlInput.value = modelUrl;
-            if (landmarkDimSelect) landmarkDimSelect.value = featureDimension;
             if (classesInput) classesInput.value = classLabels.join(', ');
             if (thresholdSlider) thresholdSlider.value = Math.round(confidenceThreshold * 100);
             if (thresholdVal && thresholdSlider) thresholdVal.textContent = `${thresholdSlider.value}%`;
@@ -601,7 +856,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnSaveSettings) {
         btnSaveSettings.addEventListener('click', async () => {
             if (modelUrlInput) modelUrl = modelUrlInput.value.trim();
-            if (landmarkDimSelect) featureDimension = landmarkDimSelect.value;
             if (classesInput) {
                 classLabels = classesInput.value.split(',').map(s => s.trim()).filter(s => s.length > 0);
             }
@@ -614,7 +868,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Inisialisasi MediaPipe dan Model
     initMediaPipeHands();
     loadModel();
 });
