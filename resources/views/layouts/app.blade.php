@@ -211,27 +211,71 @@
     </nav>
 
     <!-- Main Content Area -->
-    <main class="flex-grow pt-20 pb-16 px-3.5 sm:px-6 md:px-10 max-w-[1280px] mx-auto w-full">
+    <main class="flex-grow pt-20 pb-16 px-3.5 sm:px-6 md:px-10 w-full {{ request()->routeIs('beranda') ? '' : 'max-w-[1280px] mx-auto' }}">
         @yield('content')
     </main>
 
     <!-- Shared Footer -->
-    <footer class="w-full py-10 px-4 md:px-10 flex flex-col md:flex-row justify-between items-center gap-6 bg-surface-container-low border-t border-outline-variant/15 mt-auto">
-        <div class="flex items-center gap-2">
-            <svg class="h-6 w-6 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 8H19C20.1046 8 21 8.89543 21 10V11C21 12.1046 20.1046 13 19 13H18" stroke="#0058be" stroke-width="2" stroke-linecap="round" />
-                <path d="M6 8H18V16C18 17.6569 16.6569 19 15 19H9C7.34315 19 6 17.6569 6 16V8Z" stroke="#0058be" stroke-width="2" />
-                <path d="M9 3V5M12 2V5M15 3V5" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" />
-            </svg>
-            <span class="font-bold text-primary text-base">K-Suli</span>
-        </div>
-        <div class="flex flex-wrap justify-center gap-6 text-sm text-on-surface-variant">
-            <a class="hover:text-primary transition-colors" href="#">Kebijakan Privasi</a>
-            <a class="hover:text-primary transition-colors" href="#">Syarat Layanan</a>
-            <a class="hover:text-primary transition-colors" href="#">Bantuan</a>
-        </div>
-        <div class="text-xs text-on-surface-variant text-center md:text-right">
-            © 2026 K-Suli. Aksesibilitas Untuk Semua.
+    <footer class="w-full mt-auto border-t border-outline-variant/30 bg-surface-container-low text-on-surface">
+        <div class="mx-auto max-w-[1280px] px-4 py-9 sm:px-6 sm:py-10 md:px-10 md:py-12">
+            <div class="grid grid-cols-1 gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
+                <div class="space-y-3">
+                    <a href="{{ route('beranda') }}" class="inline-flex min-h-11 items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
+                        <svg class="h-7 w-7 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M18 8H19C20.1046 8 21 8.89543 21 10V11C21 12.1046 20.1046 13 19 13H18" stroke="#0058be" stroke-width="2" stroke-linecap="round" />
+                            <path d="M6 8H18V16C18 17.6569 16.6569 19 15 19H9C7.34315 19 6 17.6569 6 16V8Z" stroke="#0058be" stroke-width="2" />
+                            <path d="M9 3V5M12 2V5M15 3V5" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                        <span class="text-base font-bold text-primary">K-Suli</span>
+                    </a>
+                    <p class="max-w-xs text-sm leading-6 text-on-surface-variant">
+                        Belajar bahasa isyarat SIBI melalui penerjemah visual, kamus kosakata, dan kuis.
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <h2 class="text-sm font-bold text-on-surface">Menu Cepat</h2>
+                    <ul class="space-y-1 text-sm text-on-surface-variant">
+                        <li><a href="{{ route('beranda') }}" class="inline-flex min-h-11 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Beranda</a></li>
+                        <li><a href="{{ route('penerjemah') }}" class="inline-flex min-h-11 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Penerjemah Bahasa Isyarat</a></li>
+                        <li><a href="{{ route('kamus') }}" class="inline-flex min-h-11 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Kamus Kosakata SIBI</a></li>
+                        <li><a href="{{ route('quiz') }}" class="inline-flex min-h-11 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Kuis dan Latihan</a></li>
+                    </ul>
+                </div>
+
+                <div class="space-y-2">
+                    <h2 class="text-sm font-bold text-on-surface">Kafe Kasuli</h2>
+                    <p class="text-sm leading-6 text-on-surface-variant">
+                        Kenali K-Suli dan semangat belajar bahasa isyarat melalui komunitas.
+                    </p>
+                    <a href="{{ route('beranda') }}#tentang-kasuli" class="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                        Tentang K-Suli
+                        <span class="material-symbols-outlined text-base" aria-hidden="true">arrow_forward</span>
+                    </a>
+                </div>
+
+                <div class="space-y-3">
+                    <h2 class="text-sm font-bold text-on-surface">Komitmen Visual</h2>
+                    <ul class="space-y-2 text-sm leading-6 text-on-surface-variant">
+                        <li class="flex items-start gap-2">
+                            <span class="material-symbols-outlined mt-0.5 shrink-0 text-base text-primary" aria-hidden="true">visibility</span>
+                            <span>Materi belajar disajikan dengan dukungan visual.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="material-symbols-outlined mt-0.5 shrink-0 text-base text-primary" aria-hidden="true">touch_app</span>
+                            <span>Fitur dapat dibuka melalui tautan dan kontrol yang jelas.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-7 flex flex-col gap-2 border-t border-outline-variant/30 pt-4 text-xs text-on-surface-variant sm:mt-8 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                <span>&copy; {{ date('Y') }} K-Suli. Hak cipta dilindungi.</span>
+                <span class="inline-flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm text-primary" aria-hidden="true">sign_language</span>
+                    Belajar SIBI bersama K-Suli
+                </span>
+            </div>
         </div>
     </footer>
 

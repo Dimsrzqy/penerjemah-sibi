@@ -405,12 +405,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         card.addEventListener('click', handleSelectDifficulty);
-        card.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleSelectDifficulty();
-            }
-        });
     });
 
     async function startQuizWithDifficulty(diff) {

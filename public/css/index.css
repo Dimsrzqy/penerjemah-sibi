@@ -2,14 +2,28 @@
    SIBI LEARN - INDEX (BERANDA) STYLESHEET
    ============================================================ */
 
-/* Hero Image Card Animation */
-.hero-image-card {
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
+.hero-parallax-image {
+    transform: translate3d(0, var(--hero-parallax-offset, 0), 0) scale(1.42);
+    will-change: transform;
 }
 
-.hero-image-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px -15px rgba(0, 88, 190, 0.15);
+.feature-card {
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .feature-card:hover,
+    .feature-card:focus-within {
+        transform: translateY(-6px);
+        border-color: rgb(0 88 190 / 35%);
+        box-shadow: 0 14px 28px -18px rgb(11 28 48 / 35%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .feature-card {
+        transition: none;
+    }
 }
 
 /* Leaderboard Rank Items Hover & Elevation */
