@@ -63,6 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    if (searchInput?.value) {
+        filterCards();
+    }
+
     // Handle Card Click to open Detail Modal with Looping Video
     cards.forEach(card => {
         card.addEventListener('click', () => {

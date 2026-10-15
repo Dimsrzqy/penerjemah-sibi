@@ -78,129 +78,59 @@
             <div class="space-y-1">
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">Pilih Tingkat Kesulitan</h2>
                 <p class="text-xs sm:text-sm text-on-surface-variant max-w-xl mx-auto leading-relaxed px-2 sm:px-0">
-                    Tentukan tingkat kesulitan kuis peragaan isyarat SIBI sesuai kemampuan Anda. Setiap soal memiliki batas waktu 10 detik.
+                    Pilih tantangan sesuai kemampuan. Setiap soal harus diselesaikan dalam 10 detik.
                 </p>
             </div>
         </div>
 
-        <!-- 3 Kartu Tingkat Kesulitan (Mobile Optimized Soft Blue Theme) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-stretch">
-            <!-- 1. Tingkat Mudah -->
-            <div class="difficulty-card difficulty-card-modern group bg-surface-container-lowest hover:bg-surface-container-low active:bg-surface-container-low rounded-3xl p-5 sm:p-7 shadow-sm hover:shadow-md border border-outline-variant/30 hover:border-primary/40 active:scale-[0.99] cursor-pointer flex flex-col justify-between"
-                data-difficulty="mudah" role="button" tabindex="0" aria-label="Pilih Tingkat Mudah">
-                <div class="space-y-3.5 sm:space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-                            <span class="material-symbols-outlined text-2xl">sentiment_satisfied</span>
-                        </div>
-                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-surface-container text-primary">
-                            Tingkat 1
-                        </span>
-                    </div>
+        <div class="difficulty-options mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 md:grid-cols-3">
+            <button type="button" class="difficulty-card" data-difficulty="mudah">
+                <span class="difficulty-card__level">01 <span>Tingkat</span></span>
+                <span class="difficulty-card__content">
+                    <span class="difficulty-card__title">Mudah</span>
+                    <span class="difficulty-card__details">1 kata dasar</span>
+                    <span class="difficulty-card__example">Contoh: SAYA, KULIAH</span>
+                </span>
+                <span class="difficulty-card__footer">
+                    <span class="difficulty-card__score">Maks. 100 poin</span>
+                    <span class="difficulty-card__action">
+                        Mulai
+                        <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                    </span>
+                </span>
+            </button>
 
-                    <div>
-                        <h3 class="text-lg sm:text-xl font-bold text-on-surface group-hover:text-primary transition-colors">
-                            Tingkat Mudah
-                        </h3>
-                        <p class="text-xs text-on-surface-variant mt-0.5 sm:mt-1">
-                            1 Kata Dasar · 10 Detik
-                        </p>
-                    </div>
+            <button type="button" class="difficulty-card" data-difficulty="sedang">
+                <span class="difficulty-card__level">02 <span>Tingkat</span></span>
+                <span class="difficulty-card__content">
+                    <span class="difficulty-card__title">Sedang</span>
+                    <span class="difficulty-card__details">2 kata berurutan</span>
+                    <span class="difficulty-card__example">Contoh: TERIMA KASIH</span>
+                </span>
+                <span class="difficulty-card__footer">
+                    <span class="difficulty-card__score">Maks. 250 poin</span>
+                    <span class="difficulty-card__action">
+                        Mulai
+                        <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                    </span>
+                </span>
+            </button>
 
-                    <p class="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                        Menampilkan 1 kata kosakata dasar pada setiap soal (contoh: SAYA, KULIAH). Cocok untuk pemula yang baru memulai.
-                    </p>
-                </div>
-
-                <div class="pt-4 sm:pt-5 border-t border-outline-variant/20 mt-5 sm:mt-6 flex items-center justify-between gap-2">
-                    <div>
-                        <span class="text-[10px] sm:text-[11px] text-on-surface-variant block">Maksimal Skor</span>
-                        <span class="text-sm font-bold text-primary">100 Poin</span>
-                    </div>
-                    <button type="button" class="bg-primary text-on-primary hover:bg-surface-tint active:bg-surface-tint text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm">
-                        <span>Mulai</span>
-                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 2. Tingkat Sedang -->
-            <div class="difficulty-card difficulty-card-modern group bg-surface-container-lowest hover:bg-surface-container-low active:bg-surface-container-low rounded-3xl p-5 sm:p-7 shadow-sm hover:shadow-md border border-outline-variant/30 hover:border-primary/40 active:scale-[0.99] cursor-pointer flex flex-col justify-between"
-                data-difficulty="sedang" role="button" tabindex="0" aria-label="Pilih Tingkat Sedang">
-                <div class="space-y-3.5 sm:space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-                            <span class="material-symbols-outlined text-2xl">speed</span>
-                        </div>
-                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-surface-container text-primary">
-                            Tingkat 2
-                        </span>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg sm:text-xl font-bold text-on-surface group-hover:text-primary transition-colors">
-                            Tingkat Sedang
-                        </h3>
-                        <p class="text-xs text-on-surface-variant mt-0.5 sm:mt-1">
-                            2 Kata Berurutan · 10 Detik
-                        </p>
-                    </div>
-
-                    <p class="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                        Menampilkan 2 kata yang saling berkaitan berurutan (contoh: TERIMA KASIH, SELAMAT PAGI). Selesaikan dalam total 10 detik.
-                    </p>
-                </div>
-
-                <div class="pt-4 sm:pt-5 border-t border-outline-variant/20 mt-5 sm:mt-6 flex items-center justify-between gap-2">
-                    <div>
-                        <span class="text-[10px] sm:text-[11px] text-on-surface-variant block">Maksimal Skor</span>
-                        <span class="text-sm font-bold text-primary">250 Poin</span>
-                    </div>
-                    <button type="button" class="bg-primary text-on-primary hover:bg-surface-tint active:bg-surface-tint text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm">
-                        <span>Mulai</span>
-                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 3. Tingkat Susah -->
-            <div class="difficulty-card difficulty-card-modern group bg-surface-container-lowest hover:bg-surface-container-low active:bg-surface-container-low rounded-3xl p-5 sm:p-7 shadow-sm hover:shadow-md border border-outline-variant/30 hover:border-primary/40 active:scale-[0.99] cursor-pointer flex flex-col justify-between"
-                data-difficulty="susah" role="button" tabindex="0" aria-label="Pilih Tingkat Susah">
-                <div class="space-y-3.5 sm:space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-                            <span class="material-symbols-outlined text-2xl">psychology</span>
-                        </div>
-                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-surface-container text-primary">
-                            Tingkat 3
-                        </span>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg sm:text-xl font-bold text-on-surface group-hover:text-primary transition-colors">
-                            Tingkat Susah
-                        </h3>
-                        <p class="text-xs text-on-surface-variant mt-0.5 sm:mt-1">
-                            3 - 4 Kata (SPOK) · 10 Detik
-                        </p>
-                    </div>
-
-                    <p class="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-                        Menampilkan 3 atau 4 kata berpola SPOK (contoh: SAYA KULIAH DARI PAGI). Peragakan berurutan dalam total 10 detik.
-                    </p>
-                </div>
-
-                <div class="pt-4 sm:pt-5 border-t border-outline-variant/20 mt-5 sm:mt-6 flex items-center justify-between gap-2">
-                    <div>
-                        <span class="text-[10px] sm:text-[11px] text-on-surface-variant block">Maksimal Skor</span>
-                        <span class="text-sm font-bold text-primary">500 Poin</span>
-                    </div>
-                    <button type="button" class="bg-primary text-on-primary hover:bg-surface-tint active:bg-surface-tint text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm">
-                        <span>Mulai</span>
-                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                    </button>
-                </div>
-            </div>
+            <button type="button" class="difficulty-card" data-difficulty="susah">
+                <span class="difficulty-card__level">03 <span>Tingkat</span></span>
+                <span class="difficulty-card__content">
+                    <span class="difficulty-card__title">Sulit</span>
+                    <span class="difficulty-card__details">3–4 kata berpola SPOK</span>
+                    <span class="difficulty-card__example">Contoh: SAYA KULIAH DARI PAGI</span>
+                </span>
+                <span class="difficulty-card__footer">
+                    <span class="difficulty-card__score">Maks. 500 poin</span>
+                    <span class="difficulty-card__action">
+                        Mulai
+                        <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                    </span>
+                </span>
+            </button>
         </div>
 
         <!-- Footer Back Navigation -->

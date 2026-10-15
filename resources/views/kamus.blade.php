@@ -20,6 +20,8 @@
             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
             <input id="searchInput" 
                    class="w-full bg-surface-container-highest border-none rounded-full py-3 pl-12 pr-4 text-sm sm:text-base focus:ring-2 focus:ring-primary shadow-sm outline-none" 
+                   name="q"
+                   value="{{ is_string(request('q')) ? request('q') : '' }}"
                    placeholder="Cari kosakata..." 
                    type="text">
         </div>

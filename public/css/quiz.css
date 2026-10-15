@@ -82,20 +82,117 @@
     transition: width 1s linear, background-color 0.3s ease;
 }
 
-/* ============================================================
-   DIFFICULTY SELECTION CARDS (UNIFIED SOFT BLUE THEME)
-   ============================================================ */
-.difficulty-card-modern {
-    transition: all 0.2s ease-in-out;
-    outline: none;
+.difficulty-card {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 1.25rem;
+    width: 100%;
+    min-height: 15rem;
+    padding: 1.25rem;
+    border: 1px solid #d3d8e5;
+    border-radius: 1.125rem;
+    background: #fff;
+    color: #0b1c30;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
 }
 
-.difficulty-card-modern:hover {
-    transform: translateY(-3px);
+.difficulty-card:hover {
+    border-color: #0058be;
+    background: #f8f9ff;
+    transform: translateY(-2px);
 }
 
-.difficulty-card-modern:focus-visible {
-    box-shadow: 0 0 0 3px rgba(0, 88, 190, 0.35);
+.difficulty-card:focus-visible {
+    outline: 3px solid rgba(0, 88, 190, 0.4);
+    outline-offset: 3px;
 }
 
+.difficulty-card__level {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    color: #0058be;
+    font-size: 0.8125rem;
+    font-weight: 700;
+}
 
+.difficulty-card__level span {
+    color: #424754;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.difficulty-card__content {
+    display: grid;
+    align-content: start;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.difficulty-card__title {
+    font-size: 1.375rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.difficulty-card__details {
+    color: #424754;
+    font-size: 0.875rem;
+    line-height: 1.45;
+}
+
+.difficulty-card__example {
+    color: #424754;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.difficulty-card__footer {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e8ef;
+}
+
+.difficulty-card__score {
+    color: #424754;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.difficulty-card__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 2.75rem;
+    color: #0058be;
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+    .difficulty-card {
+        min-height: 13rem;
+        padding: 1.125rem;
+    }
+
+    .difficulty-card__content {
+        gap: 0.3rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .difficulty-card {
+        transition: none;
+    }
+
+    .difficulty-card:hover {
+        transform: none;
+    }
+}
