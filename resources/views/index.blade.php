@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'SIBI Learn - Platform Belajar Bahasa Isyarat & K-Suli')
+@section('title', 'Belajar Kosakata SIBI di Kafe Kasuli | K-Suli')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/index.css') }}">
@@ -8,7 +8,7 @@
 
 @section('content')
 <div class="-mx-3.5 -mt-5 space-y-0 sm:-mx-6 sm:-mt-6 md:-mx-10">
-    <section data-parallax-hero class="relative isolate flex min-h-[560px] items-center justify-center overflow-hidden bg-inverse-surface px-4 py-14 sm:min-h-[640px] sm:px-6 sm:py-16">
+    <section data-parallax-hero class="relative isolate overflow-hidden bg-inverse-surface px-4 py-8 sm:px-6 sm:py-16 lg:grid lg:min-h-[560px] lg:place-items-center">
         <img
             data-parallax-image
             class="hero-parallax-image absolute inset-0 -z-20 h-full w-full object-cover"
@@ -17,40 +17,47 @@
             fetchpriority="high">
         <div class="absolute inset-0 -z-10 bg-inverse-surface/75" aria-hidden="true"></div>
 
-        <div class="mx-auto w-full max-w-3xl text-center text-inverse-on-surface">
-            <p class="mx-auto inline-flex items-center gap-2 rounded-full border border-white/20 bg-inverse-surface/50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-tertiary-fixed sm:text-xs">
-                <span class="material-symbols-outlined text-sm" aria-hidden="true">sign_language</span>
-                Sistem Isyarat Bahasa Indonesia (SIBI) · Kafe Kasuli
-            </p>
-            <h1 class="mt-5 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl md:text-5xl">
-                Belajar Bahasa Isyarat SIBI
-            </h1>
-            <p class="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-inverse-on-surface/90 sm:text-base">
-                Belajar kosakata dan komunikasi visual bersama Kafe Kasuli. Temukan isyarat yang ingin Anda pelajari melalui kamus.
-            </p>
+        <div class="mx-auto grid w-full max-w-6xl items-center gap-5 sm:gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+            <div class="max-w-2xl text-white">
+                <p class="text-xs font-semibold text-tertiary-fixed sm:text-base">Sistem Isyarat Bahasa Indonesia (SIBI)</p>
+                <h1 class="mt-2 font-heading text-3xl font-bold leading-tight tracking-tight sm:mt-3 sm:text-5xl lg:text-6xl">
+                    Belajar kosakata SIBI di Kafe Kasuli
+                </h1>
+                <p class="mt-3 max-w-xl text-sm leading-relaxed text-white/90 sm:mt-5 sm:text-lg">
+                    Cari kata sehari-hari, lihat panduan isyarat visualnya, lalu lanjutkan latihan lewat kuis.
+                </p>
+            </div>
 
-            <form action="{{ route('kamus') }}" method="GET" role="search" class="mx-auto mt-7 flex w-full max-w-2xl flex-col gap-2 rounded-2xl border border-white/20 bg-inverse-surface/70 p-2 shadow-lg backdrop-blur-sm sm:flex-row sm:items-center sm:rounded-full sm:pl-4">
-                <label for="homeSearch" class="sr-only">Cari kosakata SIBI</label>
-                <span class="material-symbols-outlined hidden shrink-0 text-xl text-inverse-on-surface/70 sm:block" aria-hidden="true">search</span>
-                <input
-                    id="homeSearch"
-                    name="q"
-                    type="search"
-                    placeholder="Cari kosakata isyarat SIBI..."
-                    class="min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-inverse-on-surface placeholder:text-inverse-on-surface/70 focus:ring-0 sm:px-1">
-                <button type="submit" class="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-surface-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:rounded-full">
-                    <span class="material-symbols-outlined text-lg" aria-hidden="true">search</span>
-                    Cari Isyarat
-                </button>
-            </form>
+            <div class="rounded-2xl bg-surface-container-lowest p-4 text-on-surface sm:p-7">
+                <h2 class="text-lg font-bold leading-snug sm:text-2xl">Kosakata apa yang ingin kamu pelajari?</h2>
+                <p class="mt-1 text-sm leading-relaxed text-on-surface-variant sm:mt-2">Mulai dari satu kata yang sering kamu gunakan.</p>
 
-            <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-inverse-on-surface/80">
-                <span class="mr-1">Contoh pencarian:</span>
-                @foreach (['Terima Kasih', 'Belajar', 'Makan', 'Rumah'] as $word)
-                    <a href="{{ route('kamus', ['q' => $word]) }}" class="inline-flex min-h-9 items-center rounded-full border border-white/20 bg-inverse-surface/40 px-3 font-medium transition-colors hover:bg-inverse-surface/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-                        {{ $word }}
-                    </a>
-                @endforeach
+                <form action="{{ route('kamus') }}" method="GET" role="search" class="mt-4 space-y-2 sm:mt-5 sm:space-y-3">
+                    <label for="homeSearch" class="sr-only">Cari kosakata SIBI</label>
+                    <div class="flex min-w-0 items-center gap-2 rounded-xl border border-outline-variant bg-white px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
+                        <span class="material-symbols-outlined shrink-0 text-xl text-on-surface-variant" aria-hidden="true">search</span>
+                        <input
+                            id="homeSearch"
+                            name="q"
+                            type="search"
+                            placeholder="Contoh: terima kasih"
+                            class="min-h-12 min-w-0 flex-1 border-0 bg-transparent px-1 text-sm text-on-surface placeholder:text-on-surface-variant focus:ring-0">
+                    </div>
+                    <button type="submit" class="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-on-primary transition-colors hover:bg-surface-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                        Cari di Kamus SIBI
+                    </button>
+                </form>
+
+                <div class="mt-4 border-t border-outline-variant pt-3 sm:mt-5 sm:pt-4">
+                    <p class="text-xs font-semibold text-on-surface-variant">Coba cari</p>
+                    <div class="mt-2 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                        @foreach (['Terima Kasih', 'Belajar', 'Makan', 'Rumah'] as $word)
+                            <a href="{{ route('kamus', ['q' => $word]) }}" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-outline-variant px-3 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:justify-start">
+                                {{ $word }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -184,7 +191,7 @@
 
     <section class="bg-surface-container-low px-3.5 py-10 sm:px-6 sm:py-14 md:px-10">
         <div class="mx-auto max-w-7xl">
-            <div class="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+            <div class="mb-6 flex flex-col gap-4 sm:mb-8">
                 <div class="flex items-start gap-3">
                     <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                         <span class="material-symbols-outlined text-2xl" aria-hidden="true">leaderboard</span>
@@ -195,10 +202,6 @@
                         <p class="text-sm text-on-surface-variant sm:text-base">Lihat skor kuis tertinggi dan ikuti tantangannya.</p>
                     </div>
                 </div>
-                <a href="{{ route('quiz') }}" class="inline-flex min-h-11 w-fit shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-colors hover:bg-surface-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-                    <span class="material-symbols-outlined text-lg" aria-hidden="true">quiz</span>
-                    Ikuti Kuis
-                </a>
             </div>
 
             <div class="overflow-hidden rounded-3xl border border-outline-variant/40 bg-surface-container-lowest">
@@ -261,7 +264,7 @@
                 </p>
                 <h2 class="text-2xl font-bold leading-tight text-on-surface sm:text-3xl">Ngopi Santai Sambil Belajar Isyarat Langsung di Kafe Kasuli</h2>
                 <p class="text-sm leading-relaxed text-on-surface-variant sm:text-base">
-                    Jl. Kasuli Inklusif No. 12, Area Belajar &amp; Kedai Ramah Isyarat, Bandung. Terbuka setiap hari untuk umum, kawan tuli, dan komunitas pemelajar.
+                    Jl. Manggis No. 95, Krajan, Jemberlor, Kec. Patrang, Kabupaten Jember, Jawa Timur 68118. Lihat lokasi K-SULI pada peta untuk petunjuk arah.
                 </p>
 
                 <div class="grid gap-3 pt-1 sm:grid-cols-2">
@@ -283,25 +286,13 @@
             </div>
 
             <div class="rounded-xl bg-background p-5 sm:p-6 lg:col-span-5">
-                <div class="flex items-center gap-3">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                        <span class="material-symbols-outlined text-2xl" aria-hidden="true">chat</span>
-                    </span>
-                    <div>
-                        <h3 class="font-bold text-on-surface">Reservasi Kelas Isyarat</h3>
-                        <p class="text-xs text-on-surface-variant">Terhubung dengan Tim Barista Kasuli</p>
-                    </div>
-                </div>
-                <p class="mt-4 text-sm leading-relaxed text-on-surface-variant">
-                    Ingin mengadakan workshop komunitas atau belajar privat? Hubungi tim Kafe Kasuli melalui WhatsApp.
-                </p>
-                <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" class="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-on-primary transition-colors hover:bg-surface-tint focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-                    <span class="material-symbols-outlined text-xl" aria-hidden="true">phone_iphone</span>
-                    WhatsApp: 0812-3456-7890
-                </a>
-                <p class="mt-3 text-center text-xs leading-relaxed text-on-surface-variant">
-                    Hubungi kami untuk menanyakan jadwal dan ketersediaan kelas.
-                </p>
+                <iframe
+                    class="aspect-[4/3] w-full rounded-lg border-0 sm:aspect-video"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3080.3465049241577!2d113.7049635737323!3d-8.15977288174995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd695fab97f52b3%3A0x797ab6971af1cce8!2sK-SULI!5e1!3m2!1sid!2sid!4v1792154915929!5m2!1sid!2sid"
+                    title="Peta lokasi K-SULI"
+                    allowfullscreen
+                    loading="lazy"
+                    referrerpolicy="strict-origin-when-cross-origin"></iframe>
             </div>
         </div>
     </section>

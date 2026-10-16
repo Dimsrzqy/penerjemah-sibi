@@ -235,11 +235,11 @@
 
                 <div class="space-y-2">
                     <h2 class="text-sm font-bold text-on-surface">Menu Cepat</h2>
-                    <ul class="space-y-1 text-sm text-on-surface-variant">
-                        <li><a href="{{ route('beranda') }}" class="inline-flex min-h-11 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Beranda</a></li>
-                        <li><a href="{{ route('penerjemah') }}" class="inline-flex min-h-11 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Penerjemah Bahasa Isyarat</a></li>
-                        <li><a href="{{ route('kamus') }}" class="inline-flex min-h-11 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Kamus Kosakata SIBI</a></li>
-                        <li><a href="{{ route('quiz') }}" class="inline-flex min-h-11 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Kuis dan Latihan</a></li>
+                    <ul class="space-y-0 text-sm text-on-surface-variant">
+                        <li><a href="{{ route('beranda') }}" class="inline-flex min-h-9 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Beranda</a></li>
+                        <li><a href="{{ route('penerjemah') }}" class="inline-flex min-h-9 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Penerjemah Bahasa Isyarat</a></li>
+                        <li><a href="{{ route('kamus') }}" class="inline-flex min-h-9 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Kamus Kosakata SIBI</a></li>
+                        <li><a href="{{ route('quiz') }}" class="inline-flex min-h-9 items-center hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Kuis dan Latihan</a></li>
                     </ul>
                 </div>
 
