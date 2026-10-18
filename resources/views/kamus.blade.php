@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Kamus SIBI - SIBI Learn')
+@section('title', 'Kamus SIBI - Isyarat K-SULI')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/kamus.css') }}">

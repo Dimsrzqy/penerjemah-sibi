@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Penerjemah SIBI Real-Time (MediaPipe Hands) - SIBI Learn')
+@section('title', 'Penerjemah Kamera - Isyarat K-SULI')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/penerjemah.css') }}">
