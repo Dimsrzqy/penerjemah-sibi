@@ -31,6 +31,11 @@ Not lazy about: understanding the problem (read it fully and trace the real flow
 
 (Yes, this file also applies to agents working on the ponytail repo itself. Especially to them.)
 
+## 🎨 Aturan Desain (DESIGN.md) — Wajib Dilihat Terlebih Dahulu
+Setiap kali ada prompt atau pengerjaan dari pengguna (khususnya yang berkaitan dengan UI, Blade view, komponen, CSS, tata letak, warna, atau interaksi pengguna):
+1. **Wajib Baca `DESIGN.md` Terlebih Dahulu**: Agen **WAJIB membaca dan meninjau file [DESIGN.md](DESIGN.md) terlebih dahulu** sebelum merancang atau mengeksekusi perubahan kode apa pun.
+2. **Kepatuhan Desain Mutlak**: Semua perubahan visual harus mematuhi token warna resmi (Primary `#0058be`, Secondary `#00687a`, Tertiary `#825100`, Surface `#f8f9ff`, dll.), tipografi (`Outfit` untuk heading, `Inter` untuk body), Google Material Symbols Outlined, micro-interactions, serta standar aksesibilitas (touch target minimal 44px) yang didefinisikan di `DESIGN.md`.
+
 <!-- antislop:start -->
 ## antislop
 For UI, copy, people, mobile layout, or code comments work, load the antislop skill for the task:

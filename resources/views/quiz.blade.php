@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Kuis Interaktif Bahasa Isyarat SIBI - SIBI Learn')
+@section('title', 'Kuis Praktik - Isyarat K-SULI')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/quiz.css') }}">

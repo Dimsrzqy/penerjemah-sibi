@@ -5,11 +5,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     try {
+        // Ambil 10 perolehan skor tertinggi langsung dari tabel quiz_scores dengan relasi guest
         $leaderboard = QuizScore::with('guest')
+            ->where('score', '>', 0)
             ->orderByDesc('score')
             ->take(10)
             ->get();
     } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::error('Leaderboard DB connection error: ' . $e->getMessage());
         $leaderboard = collect();
     }
 
