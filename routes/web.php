@@ -18,6 +18,7 @@ Route::get('/', function () {
 
     return view('index', compact('leaderboard'));
 })->name('beranda');
+Route::redirect('/home', '/')->name('home');
 
 Route::get('/penerjemah', function () {
     return view('penerjemah');
