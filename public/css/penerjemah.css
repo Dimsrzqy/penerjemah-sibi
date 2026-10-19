@@ -35,3 +35,18 @@
 #holdProgressBar {
     transition: width 0.08s linear;
 }
+
+/* Slim elegant scrollbar for sentence buffer canvas */
+#sentenceContainer::-webkit-scrollbar {
+    width: 4px;
+}
+#sentenceContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+#sentenceContainer::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.2);
+    border-radius: 4px;
+}
+#sentenceContainer::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.4);
+}

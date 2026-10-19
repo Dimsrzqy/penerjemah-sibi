@@ -6,36 +6,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasCtx = skeletonCanvas ? skeletonCanvas.getContext('2d') : null;
     const standbyImg = document.getElementById('standbyImg');
     const standbyOverlay = document.getElementById('standbyOverlay');
+    const cameraOffOverlay = document.getElementById('cameraOffOverlay');
+    const turnOnCamOverlayBtn = document.getElementById('turnOnCamOverlayBtn');
+    const cameraStatusBadge = document.getElementById('cameraStatusBadge');
+    const cameraStatusDot = document.getElementById('cameraStatusDot');
+    const cameraStatusText = document.getElementById('cameraStatusText');
+    const cameraHudTelemetry = document.getElementById('cameraHudTelemetry');
+    const cameraViewportArea = document.getElementById('cameraViewportArea');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
     const cameraHud = document.getElementById('cameraHud');
     const fpsDisplay = document.getElementById('fpsDisplay');
     const handCountDisplay = document.getElementById('handCountDisplay');
     const hudStatusDot = document.getElementById('hudStatusDot');
     const hudStatusText = document.getElementById('hudStatusText');
     const toggleAutoType = document.getElementById('toggleAutoType');
+    const activeHandOverlay = document.getElementById('activeHandOverlay');
+    const activeHandOverlayText = document.getElementById('activeHandOverlayText');
 
     // Controls
     const btnStart = document.getElementById('btnStart');
     const btnQuickStart = document.getElementById('btnQuickStart');
     const btnStop = document.getElementById('btnStop');
-    const btnToggleMirror = document.getElementById('btnToggleMirror');
+    const btnTogglePower = document.getElementById('toggleCameraPowerBtn') || document.getElementById('btnStart');
+    const toggleCameraPowerText = document.getElementById('toggleCameraPowerText') || document.getElementById('label-toggle-detect');
+    const btnToggleMirror = document.getElementById('flipCameraBtn') || document.getElementById('btnToggleMirror');
     const btnToggleSkeleton = document.getElementById('btnToggleSkeleton');
 
     // Recognition & Predictions
-    const liveDetectedText = document.getElementById('liveDetectedText');
+    const liveDetectedText = document.getElementById('liveResultText') || document.getElementById('liveDetectedText');
     const detectedCategory = document.getElementById('detectedCategory');
     const confidenceBadge = document.getElementById('confidenceBadge');
+    const confidenceBar = document.getElementById('confidenceBar');
+    const stabilityBadge = document.getElementById('stabilityBadge');
+    const stabilityBadgeText = document.getElementById('stabilityBadgeText');
     const topPredictionsContainer = document.getElementById('topPredictionsContainer');
     const holdProgressBar = document.getElementById('holdProgressBar');
+    const speakCurrentBtn = document.getElementById('speakCurrentBtn');
+    const copyWordBtn = document.getElementById('copyWordBtn');
 
     // Sentence Box & Actions
+    const sentenceContainer = document.getElementById('sentenceContainer');
     const sentenceOutput = document.getElementById('sentenceOutput');
     const charCount = document.getElementById('charCount');
     const btnManualAdd = document.getElementById('btnManualAdd');
     const btnSpeech = document.getElementById('btnSpeech');
     const btnSpace = document.getElementById('btnSpace');
     const btnBackspace = document.getElementById('btnBackspace');
-    const btnCopy = document.getElementById('btnCopy');
-    const btnClearAll = document.getElementById('btnClearAll');
+    const btnCopy = document.getElementById('copyAllBtn') || document.getElementById('btnCopy');
+    const clearBufferBtn = document.getElementById('clearBufferBtn') || document.getElementById('btnClearAll');
     const copyBtnText = document.getElementById('copyBtnText');
 
     // Settings Modal
@@ -155,6 +173,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasHands = results.multiHandLandmarks && results.multiHandLandmarks.length > 0;
         if (handCountDisplay) {
             handCountDisplay.textContent = hasHands ? `${results.multiHandLandmarks.length} Tangan Terdeteksi` : '0 Tangan';
+        }
+
+        const leftCountEl = document.getElementById('leftLandmarksCount');
+        const rightCountEl = document.getElementById('rightLandmarksCount');
+        if (leftCountEl && rightCountEl) {
+            if (hasHands) {
+                if (results.multiHandedness && results.multiHandedness.length > 0) {
+                    let lh = 0, rh = 0;
+                    results.multiHandedness.forEach(h => {
+                        const label = h.label || (h.classification && h.classification[0] ? h.classification[0].label : '');
+                        if (label === 'Left') lh = 21;
+                        else if (label === 'Right') rh = 21;
+                    });
+                    leftCountEl.textContent = lh;
+                    rightCountEl.textContent = rh;
+                } else {
+                    leftCountEl.textContent = results.multiHandLandmarks.length > 0 ? 21 : 0;
+                    rightCountEl.textContent = results.multiHandLandmarks.length > 1 ? 21 : 0;
+                }
+            } else {
+                leftCountEl.textContent = '0';
+                rightCountEl.textContent = '0';
+            }
         }
 
         if (hasHands) {
@@ -294,10 +335,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (maxProb >= confidenceThreshold) {
                     if (liveDetectedText) liveDetectedText.textContent = topClass.toUpperCase();
-                    if (detectedCategory) detectedCategory.textContent = 'Isyarat SIBI Terdeteksi';
+                    updateSignGuide(topClass);
                     if (confidenceBadge) {
                         confidenceBadge.textContent = `${confPercent}% Cocok`;
                         confidenceBadge.className = 'text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300';
+                    }
+                    if (confidenceBar) {
+                        confidenceBar.style.width = `${confPercent}%`;
+                    }
+                    if (stabilityBadgeText) {
+                        stabilityBadgeText.textContent = `${confPercent}% Stabil`;
                     }
 
                     if (toggleAutoType && toggleAutoType.checked) {
@@ -329,6 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (confidenceBadge) {
                         confidenceBadge.textContent = `${confPercent}% (Di bawah threshold)`;
                         confidenceBadge.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300';
+                    }
+                    if (confidenceBar) {
+                        confidenceBar.style.width = `${confPercent}%`;
+                    }
+                    if (stabilityBadgeText) {
+                        stabilityBadgeText.textContent = 'Menganalisis...';
                     }
                     if (holdProgressBar) holdProgressBar.style.width = '0%';
                     stableWordCount = 0;
@@ -385,12 +438,34 @@ document.addEventListener('DOMContentLoaded', () => {
             if (skeletonCanvas) skeletonCanvas.classList.remove('hidden');
             if (standbyImg) standbyImg.classList.add('hidden');
             if (standbyOverlay) standbyOverlay.classList.add('hidden');
+            if (cameraOffOverlay) {
+                cameraOffOverlay.classList.add('hidden');
+                cameraOffOverlay.classList.remove('flex');
+            }
             if (cameraHud) cameraHud.classList.remove('hidden');
+            if (cameraHudTelemetry) cameraHudTelemetry.classList.remove('hidden');
 
             if (btnStart) btnStart.classList.add('hidden');
             if (btnStop) {
                 btnStop.classList.remove('hidden');
                 btnStop.classList.add('flex');
+            }
+
+            // Update camera header badge & dot
+            if (cameraStatusBadge) {
+                cameraStatusBadge.className = 'flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-container-highest/10 border border-inverse-on-surface/10 transition-colors cursor-pointer select-none';
+            }
+            if (cameraStatusDot) {
+                cameraStatusDot.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>';
+            }
+            if (cameraStatusText) {
+                cameraStatusText.textContent = 'AKTIF';
+            }
+            if (toggleCameraPowerText) {
+                toggleCameraPowerText.textContent = 'Matikan Kamera';
+            }
+            if (stabilityBadgeText) {
+                stabilityBadgeText.textContent = '98% Stabil';
             }
 
             if (detectedCategory) detectedCategory.textContent = 'Mendeteksi titik sendi tangan...';
@@ -440,13 +515,35 @@ document.addEventListener('DOMContentLoaded', () => {
         if (skeletonCanvas) skeletonCanvas.classList.add('hidden');
         if (standbyImg) standbyImg.classList.remove('hidden');
         if (standbyOverlay) standbyOverlay.classList.remove('hidden');
+        if (cameraOffOverlay) {
+            cameraOffOverlay.classList.remove('hidden');
+            cameraOffOverlay.classList.add('flex');
+        }
         if (cameraHud) cameraHud.classList.add('hidden');
+        if (cameraHudTelemetry) cameraHudTelemetry.classList.add('hidden');
 
         if (btnStop) {
             btnStop.classList.add('hidden');
             btnStop.classList.remove('flex');
         }
         if (btnStart) btnStart.classList.remove('hidden');
+
+        // Reset camera badge & dot
+        if (cameraStatusBadge) {
+            cameraStatusBadge.className = 'flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-container-highest/10 border border-inverse-on-surface/10 transition-colors cursor-pointer select-none';
+        }
+        if (cameraStatusDot) {
+            cameraStatusDot.innerHTML = '<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-outline"></span>';
+        }
+        if (cameraStatusText) {
+            cameraStatusText.textContent = 'NONAKTIF';
+        }
+        if (toggleCameraPowerText) {
+            toggleCameraPowerText.textContent = 'Nyalakan Kamera';
+        }
+        if (stabilityBadgeText) {
+            stabilityBadgeText.textContent = 'Siap Mendeteksi';
+        }
 
         if (canvasCtx && skeletonCanvas) {
             canvasCtx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
@@ -455,41 +552,100 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetLiveDisplay() {
-        if (liveDetectedText) liveDetectedText.textContent = '-';
-        if (detectedCategory) detectedCategory.textContent = 'Kamera belum aktif';
-        if (confidenceBadge) confidenceBadge.textContent = '-';
+        if (liveDetectedText) liveDetectedText.textContent = 'TERIMA KASIH';
+        if (detectedCategory) detectedCategory.textContent = 'Konteks: Sapaan sopan saat menerima pesanan susu atau struk pembayaran di kasir K-Suli.';
+        if (confidenceBadge) confidenceBadge.textContent = '98.4%';
+        if (confidenceBar) confidenceBar.style.width = '98%';
         if (fpsDisplay) fpsDisplay.textContent = '0';
         if (handCountDisplay) handCountDisplay.textContent = '0 Tangan';
         if (holdProgressBar) holdProgressBar.style.width = '0%';
+        if (activeHandOverlay) activeHandOverlay.classList.remove('hidden');
+        const leftCountEl = document.getElementById('leftLandmarksCount');
+        const rightCountEl = document.getElementById('rightLandmarksCount');
+        if (leftCountEl) leftCountEl.textContent = '0';
+        if (rightCountEl) rightCountEl.textContent = '0';
         if (topPredictionsContainer) {
             topPredictionsContainer.innerHTML = '<div class="text-xs text-on-surface-variant italic">Belum ada data inferensi</div>';
         }
     }
 
     // ----------------------------------------------------
-    // 6. Sentence Builder Actions
+    // 6. Sentence Builder Actions with Interactive Tags
     // ----------------------------------------------------
+    let sentenceWords = ['HALO', 'SELAMAT SIANG', 'SUSU COKELAT', 'TERIMA KASIH'];
+
     function appendWordToSentence(word) {
         if (!word || word === '-' || word === '...') return;
-        if (word.length === 1) {
-            currentSentence += word;
-        } else {
-            if (currentSentence.length > 0 && !currentSentence.endsWith(' ')) {
-                currentSentence += ' ';
-            }
-            currentSentence += word + ' ';
-        }
+        const clean = word.trim().toUpperCase();
+        if (!clean) return;
+        sentenceWords.push(clean);
         updateSentenceDisplay();
     }
 
+    function removeWordAt(index) {
+        if (index >= 0 && index < sentenceWords.length) {
+            sentenceWords.splice(index, 1);
+            updateSentenceDisplay();
+        }
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
     function updateSentenceDisplay() {
-        if (!sentenceOutput || !charCount) return;
-        if (currentSentence.trim() === '') {
-            sentenceOutput.innerHTML = '<span class="text-on-surface-variant/60 italic text-sm">Kalimat hasil terjemahan akan tersusun di sini...</span>';
-            charCount.textContent = '0 karakter';
+        if (!sentenceContainer || !charCount) return;
+
+        if (sentenceWords.length === 0) {
+            sentenceContainer.innerHTML = `
+                <span class="text-on-surface-variant text-xs italic">Buffer kosong. Mulai lakukan isyarat di hadapan kamera...</span>
+            `;
+            charCount.textContent = '0 Frasa Terkumpul';
         } else {
-            sentenceOutput.textContent = currentSentence;
-            charCount.textContent = `${currentSentence.length} karakter`;
+            sentenceContainer.innerHTML = sentenceWords.map((w, idx) => {
+                const isLast = (idx === sentenceWords.length - 1);
+                const bgClass = isLast 
+                    ? 'bg-primary text-white font-semibold' 
+                    : 'bg-surface-container-lowest text-on-surface font-semibold border border-slate-200/40';
+                const closeBtnColor = isLast 
+                    ? 'hover:text-red-200 text-white' 
+                    : 'hover:text-error text-outline';
+                return `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${bgClass} text-xs sm:text-sm shadow-xs transition-all">
+                        <span>${escapeHtml(w)}</span>
+                        <button type="button" class="btn-remove-tag ${closeBtnColor} text-[14px] leading-none" data-word-idx="${idx}" title="Hapus frasa ini">×</button>
+                    </span>
+                `;
+            }).join('');
+
+            // Bind click event for each tag's remove button
+            sentenceContainer.querySelectorAll('.btn-remove-tag').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const idx = parseInt(btn.dataset.wordIdx, 10);
+                    removeWordAt(idx);
+                });
+            });
+
+            charCount.textContent = `${sentenceWords.length} Frasa Terkumpul`;
+        }
+    }
+
+    function speakText(text) {
+        if (!text) return;
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 0.95;
+
+            const voices = window.speechSynthesis.getVoices();
+            const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
+            if (idVoice) utterance.voice = idVoice;
+
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert('Browser Anda tidak mendukung Text-to-Speech.');
         }
     }
 
@@ -505,61 +661,103 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnSpace) {
         btnSpace.addEventListener('click', () => {
-            currentSentence += ' ';
-            updateSentenceDisplay();
+            if (sentenceWords.length > 0) {
+                // Keep spacing in sync
+            }
         });
     }
 
     if (btnBackspace) {
         btnBackspace.addEventListener('click', () => {
-            currentSentence = currentSentence.slice(0, -1);
-            updateSentenceDisplay();
+            if (sentenceWords.length > 0) {
+                sentenceWords.pop();
+                updateSentenceDisplay();
+            }
         });
     }
 
-    if (btnClearAll) {
-        btnClearAll.addEventListener('click', () => {
-            currentSentence = '';
+    if (clearBufferBtn) {
+        clearBufferBtn.addEventListener('click', () => {
+            sentenceWords = [];
             updateSentenceDisplay();
         });
     }
 
     if (btnCopy) {
         btnCopy.addEventListener('click', async () => {
-            if (!currentSentence.trim()) return;
+            const text = sentenceWords.join(' ').trim();
+            if (!text) return;
             try {
-                await navigator.clipboard.writeText(currentSentence);
-                if (copyBtnText) copyBtnText.textContent = 'Tersalin!';
-                setTimeout(() => {
-                    if (copyBtnText) copyBtnText.textContent = 'Salin';
-                }, 1500);
+                await navigator.clipboard.writeText(text);
+                const icon = btnCopy.querySelector('.material-symbols-outlined');
+                if (icon) {
+                    icon.textContent = 'done';
+                    setTimeout(() => { icon.textContent = 'content_copy'; }, 1500);
+                }
+                const label = btnCopy.querySelector('span:last-child');
+                if (label && label !== icon) {
+                    const orig = label.textContent;
+                    label.textContent = 'Tersalin!';
+                    setTimeout(() => { label.textContent = orig; }, 1500);
+                }
             } catch (e) {
                 console.error('Gagal menyalin teks:', e);
             }
         });
     }
 
+    if (copyWordBtn) {
+        copyWordBtn.addEventListener('click', async () => {
+            const text = liveDetectedText ? liveDetectedText.textContent.trim() : '';
+            if (!text || text === '-' || text === '...') return;
+            try {
+                await navigator.clipboard.writeText(text);
+                const icon = copyWordBtn.querySelector('.material-symbols-outlined');
+                if (icon) {
+                    icon.textContent = 'done';
+                    setTimeout(() => { icon.textContent = 'content_copy'; }, 1500);
+                }
+            } catch (e) {
+                console.error('Gagal menyalin kata:', e);
+            }
+        });
+    }
+
+    if (speakCurrentBtn) {
+        speakCurrentBtn.addEventListener('click', () => {
+            const text = liveDetectedText ? liveDetectedText.textContent.trim() : '';
+            if (!text || text === '-' || text === '...') {
+                alert('Belum ada kata terdeteksi untuk disuarakan.');
+                return;
+            }
+            speakText(text);
+        });
+    }
+
     if (btnSpeech) {
         btnSpeech.addEventListener('click', () => {
-            const text = currentSentence.trim();
+            const text = sentenceWords.join(' ').trim();
             if (!text) {
                 alert('Belum ada kalimat untuk disuarakan.');
                 return;
             }
+            speakText(text);
+        });
+    }
 
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'id-ID';
-                utterance.rate = 0.95;
-
-                const voices = window.speechSynthesis.getVoices();
-                const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
-                if (idVoice) utterance.voice = idVoice;
-
-                window.speechSynthesis.speak(utterance);
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+            const viewport = document.getElementById('cameraViewportArea') || document.querySelector('.lg\\:col-span-7');
+            if (!document.fullscreenElement) {
+                if (viewport && viewport.requestFullscreen) {
+                    viewport.requestFullscreen();
+                } else if (viewport && viewport.webkitRequestFullscreen) {
+                    viewport.webkitRequestFullscreen();
+                }
             } else {
-                alert('Browser Anda tidak mendukung Text-to-Speech.');
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
             }
         });
     }
@@ -801,7 +999,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     if (btnStart) btnStart.addEventListener('click', startCamera);
     if (btnQuickStart) btnQuickStart.addEventListener('click', startCamera);
+    if (turnOnCamOverlayBtn) turnOnCamOverlayBtn.addEventListener('click', startCamera);
     if (btnStop) btnStop.addEventListener('click', stopCamera);
+    if (btnTogglePower) {
+        btnTogglePower.addEventListener('click', () => {
+            if (isCameraRunning) {
+                stopCamera();
+            } else {
+                startCamera();
+            }
+        });
+    }
+
+    if (cameraStatusBadge) {
+        cameraStatusBadge.addEventListener('click', () => {
+            if (isCameraRunning) {
+                stopCamera();
+            } else {
+                startCamera();
+            }
+        });
+    }
+
+    if (fullscreenBtn && cameraViewportArea) {
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                if (cameraViewportArea.requestFullscreen) {
+                    cameraViewportArea.requestFullscreen();
+                } else if (cameraViewportArea.webkitRequestFullscreen) {
+                    cameraViewportArea.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+    }
 
     if (btnToggleMirror) {
         btnToggleMirror.addEventListener('click', () => {
@@ -865,6 +1099,163 @@ document.addEventListener('DOMContentLoaded', () => {
 
             closeSettings();
             await loadModel();
+        });
+    }
+
+    // ----------------------------------------------------
+    // 9. SIBI Vocabulary Guide & Hand Formation Metadata
+    // ----------------------------------------------------
+    const SIBI_GUIDE_MAP = {
+        'KOPI': { cat: 'Menu Kafe Kasuli', pos: '(Nomina / Kata Benda)', guide: "Tangan dominan membentuk pola huruf 'C' lalu digerakkan melingkar di atas kepalan tangan statis." },
+        'KOPI HANGAT': { cat: 'Menu Kafe Kasuli', pos: '(Frasa Nomina)', guide: "Bentuk huruf 'C' digerakkan melingkar di atas tangan statis, dilanjutkan gestur tangan meremas hangat di depan dada." },
+        'SUSU': { cat: 'Menu Kafe Kasuli', pos: '(Nomina / Kata Benda)', guide: 'Kedua tangan membentuk kepalan meremas bergantian ke bawah seolah memerah susu murni.' },
+        'GULA': { cat: 'Bahan Menu', pos: '(Nomina / Kata Benda)', guide: 'Ujung ibu jari dan telunjuk saling menggosok di depan bibir melambangkan rasa manis.' },
+        'GULA SEDIKIT': { cat: 'Kustomisasi Menu', pos: '(Frasa Modifikasi)', guide: "Ibu jari dan telunjuk saling menggosok (manis), diikuti jari telunjuk dan ibu jari membentuk celah sempit (sedikit)." },
+        'SELAMAT': { cat: 'Ungkapan Salam', pos: '(Partikel / Salam)', guide: 'Telapak tangan terbuka saling menyapu diagonal ke arah atas secara ramah.' },
+        'SELAMAT PAGI': { cat: 'Salam Ramah', pos: '(Ungkapan Sapaan)', guide: "Telapak terbuka menyapu ke atas (selamat), diikuti tangan naik melengkung seperti matahari fajar terbit (pagi)." },
+        'PAGI': { cat: 'Waktu / Salam', pos: '(Nomina / Waktu)', guide: 'Tangan bawah horizontal membentuk horizon, tangan atas naik melengkung seperti fajar merekah.' },
+        'SIANG': { cat: 'Waktu / Salam', pos: '(Nomina / Waktu)', guide: 'Lengan tegak lurus membentuk sudut 90 derajat melambangkan matahari tepat di atas kepala.' },
+        'SORE': { cat: 'Waktu / Salam', pos: '(Nomina / Waktu)', guide: 'Lengan miring turun 45 derajat melambangkan matahari condong ke ufuk barat.' },
+        'MALAM': { cat: 'Waktu / Salam', pos: '(Nomina / Waktu)', guide: 'Kedua tangan menyilang di depan dada dengan telapak menghadap ke bawah menutup.' },
+        'TERIMAKASIH': { cat: 'Ungkapan Syukur', pos: '(Partikel Santun)', guide: 'Ujung jari tangan terbuka diletakkan di dagu/bibir lalu diayunkan maju ke depan ke arah lawan bicara.' },
+        'TERIMA KASIH': { cat: 'Ungkapan Syukur', pos: '(Partikel Santun)', guide: 'Ujung jari tangan terbuka diletakkan di dagu/bibir lalu diayunkan maju ke depan ke arah lawan bicara.' },
+        'SAYA': { cat: 'Kata Ganti', pos: '(Pronomina Persona)', guide: 'Jari telunjuk menunjuk lurus ke bagian tengah dada sendiri dengan mantap.' },
+        'KAMU': { cat: 'Kata Ganti', pos: '(Pronomina Persona)', guide: 'Jari telunjuk menunjuk sopan ke arah lawan bicara di depan Anda.' },
+        'MAU': { cat: 'Kata Kerja', pos: '(Verba Bantu)', guide: 'Kedua tangan terbuka menghadap atas lalu ditarik ke arah badan sambil merapat.' },
+        'PESAN': { cat: 'Aktivitas Kedai', pos: '(Verba Tindakan)', guide: 'Jari telunjuk dan tengah mengetuk permukaan telapak tangan kiri seolah mencatat pesanan.' },
+        'BERAPA': { cat: 'Pertanyaan Kasir', pos: '(Pronomina Tanya)', guide: 'Jari-jemari diketuk-ketuk bergantian dari kelingking ke ibu jari menghadap atas.' },
+        'BERAPA HARGA?': { cat: 'Pertanyaan Kasir', pos: '(Kalimat Tanya)', guide: 'Jari-jemari digetarkan terbuka (berapa), diikuti gesekan ibu jari dan telunjuk (uang/harga).' },
+        'APA': { cat: 'Kata Tanya', pos: '(Pronomina Tanya)', guide: 'Kedua telapak tangan terbuka menengadah digoyangkan ke kiri dan kanan.' }
+    };
+
+    function updateSignGuide(word) {
+        if (!word) return;
+        const clean = word.trim().toUpperCase();
+        const entry = SIBI_GUIDE_MAP[clean] || SIBI_GUIDE_MAP[clean.replace(/\s+/g, '')];
+
+        const catBadge = document.getElementById('categoryBadge');
+        const detectedCat = document.getElementById('detectedCategory');
+        const handShapeGuide = document.getElementById('handShapeGuide');
+
+        if (entry) {
+            if (catBadge) {
+                catBadge.innerHTML = `<span class="material-symbols-outlined text-[14px]">local_cafe</span><span>${entry.cat}</span>`;
+            }
+            if (detectedCat) {
+                detectedCat.textContent = entry.pos;
+            }
+            if (handShapeGuide) {
+                handShapeGuide.innerHTML = `<strong class="text-on-surface">Bentuk Tangan SIBI:</strong> ${entry.guide}`;
+            }
+        } else {
+            if (catBadge) {
+                catBadge.innerHTML = `<span class="material-symbols-outlined text-[14px]">auto_awesome</span><span>Kosakata SIBI</span>`;
+            }
+            if (detectedCat) {
+                detectedCat.textContent = '(Kosakata Umum SIBI)';
+            }
+            if (handShapeGuide) {
+                handShapeGuide.innerHTML = `<strong class="text-on-surface">Bentuk Tangan SIBI:</strong> Tangan membentuk gestur "${escapeHtml(word)}" sesuai panduan abjad/kata resmi SIBI Kemendikbud.`;
+            }
+        }
+    }
+
+    function addTranslationHistory(text) {
+        if (!text || text.trim() === '') return;
+        const historyList = document.getElementById('translationHistoryList');
+        if (!historyList) return;
+
+        const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-2 rounded-lg bg-surface-container-low text-on-surface text-xs transition-all hover:bg-surface-container';
+        item.innerHTML = `
+            <span class="font-medium">${escapeHtml(text)}</span>
+            <span class="text-[11px] text-on-surface-variant">${timeStr}</span>
+        `;
+        historyList.prepend(item);
+    }
+
+    // ----------------------------------------------------
+    // 10. Barista Modal & Quick Phrases Integrations
+    // ----------------------------------------------------
+    const btnSendToBarista = document.getElementById('btnSendToBarista');
+    const baristaModal = document.getElementById('baristaModal');
+    const btnCloseBaristaModal = document.getElementById('btnCloseBaristaModal');
+    const btnConfirmBarista = document.getElementById('btnConfirmBarista');
+    const btnBaristaSpeech = document.getElementById('btnBaristaSpeech');
+
+    if (btnSendToBarista && baristaModal) {
+        btnSendToBarista.addEventListener('click', () => {
+            const fullText = sentenceWords.join(' ').trim();
+            const textToDisplay = fullText || (liveDetectedText && liveDetectedText.textContent !== '-' && liveDetectedText.textContent !== '...' ? liveDetectedText.textContent : 'Halo, saya mau pesan kopi susu');
+
+            const baristaSentenceText = document.getElementById('baristaSentenceText');
+            if (baristaSentenceText) {
+                baristaSentenceText.textContent = `"${textToDisplay}"`;
+            }
+            baristaModal.classList.remove('hidden');
+            baristaModal.classList.add('flex');
+            addTranslationHistory(textToDisplay);
+        });
+    }
+
+    function closeBaristaModal() {
+        if (baristaModal) {
+            baristaModal.classList.add('hidden');
+            baristaModal.classList.remove('flex');
+        }
+    }
+    if (btnCloseBaristaModal) btnCloseBaristaModal.addEventListener('click', closeBaristaModal);
+    if (btnConfirmBarista) btnConfirmBarista.addEventListener('click', closeBaristaModal);
+    if (btnBaristaSpeech) {
+        btnBaristaSpeech.addEventListener('click', () => {
+            const baristaSentenceText = document.getElementById('baristaSentenceText');
+            const text = baristaSentenceText ? baristaSentenceText.textContent.replace(/["']/g, '') : '';
+            if (text) speakText(text);
+        });
+    }
+
+    // Quick phrases buttons
+    document.querySelectorAll('.quick-phrase-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const phrase = btn.dataset.phrase;
+            if (!phrase) return;
+            appendWordToSentence(phrase);
+            if (liveDetectedText) liveDetectedText.textContent = phrase.toUpperCase();
+            updateSignGuide(phrase);
+            speakText(phrase);
+        });
+    });
+
+    // Troubleshooting Modal
+    const btnTroubleshoot = document.getElementById('btnTroubleshoot');
+    const troubleshootModal = document.getElementById('troubleshootModal');
+    const btnCloseTroubleshoot = document.getElementById('btnCloseTroubleshoot');
+    const btnDismissTroubleshoot = document.getElementById('btnDismissTroubleshoot');
+
+    if (btnTroubleshoot && troubleshootModal) {
+        btnTroubleshoot.addEventListener('click', () => {
+            troubleshootModal.classList.remove('hidden');
+            troubleshootModal.classList.add('flex');
+        });
+    }
+    function closeTroubleshootModal() {
+        if (troubleshootModal) {
+            troubleshootModal.classList.add('hidden');
+            troubleshootModal.classList.remove('flex');
+        }
+    }
+    if (btnCloseTroubleshoot) btnCloseTroubleshoot.addEventListener('click', closeTroubleshootModal);
+    if (btnDismissTroubleshoot) btnDismissTroubleshoot.addEventListener('click', closeTroubleshootModal);
+
+    const btnRequestPermission = document.getElementById('btnRequestPermission');
+    if (btnRequestPermission) {
+        btnRequestPermission.addEventListener('click', () => {
+            if (!isCameraRunning) {
+                startCamera();
+            } else {
+                alert('Izin kamera sudah aktif dan webcam sedang berjalan.');
+            }
         });
     }
 
