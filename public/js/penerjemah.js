@@ -56,6 +56,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBufferBtn = document.getElementById('clearBufferBtn') || document.getElementById('btnClearAll');
     const copyBtnText = document.getElementById('copyBtnText');
 
+    // Fullscreen Bottom Translation Overlay Elements
+    const fsTranslationOverlay = document.getElementById('fullscreenTranslationOverlay');
+    const fsLiveDetectedWord = document.getElementById('fsLiveDetectedWord');
+    const fsConfidenceBadge = document.getElementById('fsConfidenceBadge');
+    const fsConfidenceDot = document.getElementById('fsConfidenceDot');
+    const fsConfidenceText = document.getElementById('fsConfidenceText');
+    const fsSentenceContainer = document.getElementById('fsSentenceContainer');
+    const fsSpeakCurrentBtn = document.getElementById('fsSpeakCurrentBtn');
+    const fsSpeakSentenceBtn = document.getElementById('fsSpeakSentenceBtn');
+    const fsClearBtn = document.getElementById('fsClearBtn');
+    const fsExitBtn = document.getElementById('fsExitBtn');
+
     // Settings Modal
     const settingsModal = document.getElementById('settingsModal');
     const btnOpenSettings = document.getElementById('btnOpenSettings');
@@ -100,10 +112,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const INFER_INTERVAL_MS = 100;
     let isInferring = false;
 
-    // Offscreen Processing Canvas
+    // Offscreen Processing Canvas (Rasio 16:9 proporsional 480x270)
     let procCanvas = document.createElement('canvas');
     let procCtx = procCanvas.getContext('2d', { willReadFrequently: true });
-    procCanvas.width = 360;
+    procCanvas.width = 480;
     procCanvas.height = 270;
 
     // Auto-Type Dwell Logic
@@ -252,13 +264,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!hasHands && handLostFrames >= HAND_LOST_TOLERANCE) {
             sequenceBuffer = [];
-            if (liveDetectedText) liveDetectedText.textContent = '-';
-            if (detectedCategory) detectedCategory.textContent = 'Arahkan tangan ke kamera...';
-            if (confidenceBadge) {
-                confidenceBadge.textContent = '-';
-                confidenceBadge.className = 'text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-surface-container text-primary';
+            if (liveDetectedText) {
+                liveDetectedText.textContent = '—';
+                liveDetectedText.classList.add('text-on-surface-variant/40');
+                liveDetectedText.classList.remove('text-primary');
             }
+            if (detectedCategory) detectedCategory.textContent = 'Arahkan gestur tangan ke kamera...';
+            if (confidenceBadge) {
+                confidenceBadge.textContent = '0%';
+                confidenceBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant';
+            }
+            if (confidenceBar) confidenceBar.style.width = '0%';
             if (holdProgressBar) holdProgressBar.style.width = '0%';
+            if (activeHandOverlay) activeHandOverlay.classList.add('hidden');
+            if (stabilityBadgeText) stabilityBadgeText.textContent = isCameraRunning ? 'Mendeteksi...' : 'Menunggu Input';
             stableWordCount = 0;
             lastStableWord = '';
             lastCommittedWord = '';
@@ -334,7 +353,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const confPercent = Math.round(maxProb * 100);
 
                 if (maxProb >= confidenceThreshold) {
-                    if (liveDetectedText) liveDetectedText.textContent = topClass.toUpperCase();
+                    if (liveDetectedText) {
+                        liveDetectedText.textContent = topClass.toUpperCase();
+                        liveDetectedText.classList.remove('text-on-surface-variant/40');
+                        liveDetectedText.classList.add('text-primary');
+                    }
+                    if (fsLiveDetectedWord) {
+                        fsLiveDetectedWord.textContent = topClass.toUpperCase();
+                        fsLiveDetectedWord.className = 'text-xl sm:text-3xl font-extrabold text-emerald-400 tracking-wide truncate';
+                    }
+                    if (fsConfidenceText) {
+                        fsConfidenceText.textContent = `${confPercent}% Cocok`;
+                    }
+                    if (fsConfidenceDot) {
+                        fsConfidenceDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                    }
+                    if (fsConfidenceBadge) {
+                        fsConfidenceBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5';
+                    }
                     updateSignGuide(topClass);
                     if (confidenceBadge) {
                         confidenceBadge.textContent = `${confPercent}% Cocok`;
@@ -345,6 +381,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     if (stabilityBadgeText) {
                         stabilityBadgeText.textContent = `${confPercent}% Stabil`;
+                    }
+                    if (activeHandOverlay) {
+                        activeHandOverlay.classList.remove('hidden');
+                        if (activeHandOverlayText) activeHandOverlayText.textContent = `${topClass.toUpperCase()} (${confPercent}%)`;
                     }
 
                     if (toggleAutoType && toggleAutoType.checked) {
@@ -372,6 +412,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else {
                     if (liveDetectedText) liveDetectedText.textContent = '...';
+                    if (fsLiveDetectedWord) {
+                        fsLiveDetectedWord.textContent = '...';
+                        fsLiveDetectedWord.className = 'text-xl sm:text-3xl font-extrabold text-slate-400 tracking-wide truncate';
+                    }
+                    if (fsConfidenceText) {
+                        fsConfidenceText.textContent = `${confPercent}%`;
+                    }
+                    if (fsConfidenceDot) {
+                        fsConfidenceDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                    }
+                    if (fsConfidenceBadge) {
+                        fsConfidenceBadge.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-slate-300 border border-white/15 flex items-center gap-1.5';
+                    }
                     if (detectedCategory) detectedCategory.textContent = 'Menganalisis pose tangan...';
                     if (confidenceBadge) {
                         confidenceBadge.textContent = `${confPercent}% (Di bawah threshold)`;
@@ -416,21 +469,63 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Robust Camera Pipeline & MediaPipe Frame Sender
     // ----------------------------------------------------
     async function startCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error('navigator.mediaDevices.getUserMedia tidak didukung.');
+            showCameraError('Browser Anda tidak mendukung akses webcam atau halaman ini tidak dibuka via localhost / HTTPS.');
+            return;
+        }
+
         try {
-            if (!handsDetector) initMediaPipeHands();
+            if (!handsDetector) {
+                try {
+                    initMediaPipeHands();
+                } catch (mpErr) {
+                    console.warn('Inisialisasi MediaPipe ditunda:', mpErr);
+                }
+            }
 
-            streamInstance = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    width: { ideal: 640 },
-                    height: { ideal: 480 },
-                    frameRate: { ideal: 30, max: 30 },
-                    facingMode: 'user'
-                },
-                audio: false
-            });
+            let stream = null;
+            try {
+                // Percobaan 1: Menggunakan ideal constraints 1920x1080 (16:9 Full HD)
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                        aspectRatio: { ideal: 1.777777778 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                });
+            } catch (constraintErr) {
+                console.warn('Constraint 1920x1080 ideal gagal, mencoba fallback 1280x720 / standard...', constraintErr);
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            aspectRatio: { ideal: 1.777777778 }
+                        },
+                        audio: false
+                    });
+                } catch (fallbackErr) {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: false
+                    });
+                }
+            }
 
-            video.srcObject = streamInstance;
-            await video.play();
+            streamInstance = stream;
+            if (video) {
+                video.srcObject = streamInstance;
+                video.muted = true;
+                video.playsInline = true;
+                try {
+                    await video.play();
+                } catch (playErr) {
+                    console.warn('video.play() gagal:', playErr);
+                }
+            }
 
             isCameraRunning = true;
 
@@ -453,27 +548,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update camera header badge & dot
             if (cameraStatusBadge) {
-                cameraStatusBadge.className = 'flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-container-highest/10 border border-inverse-on-surface/10 transition-colors cursor-pointer select-none';
+                cameraStatusBadge.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300/80 transition-colors cursor-pointer select-none';
             }
             if (cameraStatusDot) {
-                cameraStatusDot.innerHTML = '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>';
+                cameraStatusDot.innerHTML = '<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>';
             }
             if (cameraStatusText) {
                 cameraStatusText.textContent = 'AKTIF';
+                cameraStatusText.className = 'text-xs tracking-wider uppercase font-bold text-emerald-700';
             }
             if (toggleCameraPowerText) {
                 toggleCameraPowerText.textContent = 'Matikan Kamera';
             }
+            const camPowerIcon = document.querySelector('#toggleCameraPowerBtn .material-symbols-outlined');
+            if (camPowerIcon) camPowerIcon.textContent = 'videocam_off';
             if (stabilityBadgeText) {
-                stabilityBadgeText.textContent = '98% Stabil';
+                stabilityBadgeText.textContent = 'Kamera Aktif';
             }
-
-            if (detectedCategory) detectedCategory.textContent = 'Mendeteksi titik sendi tangan...';
 
             startMediaPipeLoop();
         } catch (err) {
             console.error('Gagal mengakses kamera:', err);
-            alert('Tidak dapat mengaktifkan kamera. Pastikan izin kamera telah diberikan di browser.');
+            isCameraRunning = false;
+            let errMsg = 'Tidak dapat mengaktifkan kamera. Pastikan izin kamera telah diberikan pada browser.';
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                errMsg = 'Izin kamera diblokir oleh browser. Klik ikon gembok / kamera di bilah alamat (URL bar) browser Anda lalu pilih "Izinkan" untuk kamera.';
+            } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                errMsg = 'Kamera sedang digunakan oleh aplikasi lain (seperti Zoom, Google Meet, Teams, atau Python). Silakan tutup aplikasi tersebut dan coba lagi.';
+            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                errMsg = 'Kamera webcam tidak terdeteksi pada perangkat komputer Anda.';
+            }
+            showCameraError(errMsg);
+        }
+    }
+
+    function showCameraError(msg) {
+        stopCamera();
+        if (cameraOffOverlay) {
+            cameraOffOverlay.classList.remove('hidden');
+            cameraOffOverlay.classList.add('flex');
+            const desc = cameraOffOverlay.querySelector('p');
+            if (desc) desc.textContent = msg;
         }
     }
 
@@ -530,19 +645,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reset camera badge & dot
         if (cameraStatusBadge) {
-            cameraStatusBadge.className = 'flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-container-highest/10 border border-inverse-on-surface/10 transition-colors cursor-pointer select-none';
+            cameraStatusBadge.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-500 border border-slate-200 transition-colors cursor-pointer select-none';
         }
         if (cameraStatusDot) {
-            cameraStatusDot.innerHTML = '<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-outline"></span>';
+            cameraStatusDot.innerHTML = '<span class="relative inline-flex rounded-full h-2 w-2 bg-slate-400"></span>';
         }
         if (cameraStatusText) {
             cameraStatusText.textContent = 'NONAKTIF';
+            cameraStatusText.className = 'text-xs tracking-wider uppercase font-bold text-slate-500';
         }
         if (toggleCameraPowerText) {
             toggleCameraPowerText.textContent = 'Nyalakan Kamera';
         }
+        const camPowerIcon = document.querySelector('#toggleCameraPowerBtn .material-symbols-outlined');
+        if (camPowerIcon) camPowerIcon.textContent = 'videocam';
         if (stabilityBadgeText) {
-            stabilityBadgeText.textContent = 'Siap Mendeteksi';
+            stabilityBadgeText.textContent = 'Menunggu Input';
         }
 
         if (canvasCtx && skeletonCanvas) {
@@ -552,14 +670,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetLiveDisplay() {
-        if (liveDetectedText) liveDetectedText.textContent = 'TERIMA KASIH';
-        if (detectedCategory) detectedCategory.textContent = 'Konteks: Sapaan sopan saat menerima pesanan susu atau struk pembayaran di kasir K-Suli.';
-        if (confidenceBadge) confidenceBadge.textContent = '98.4%';
-        if (confidenceBar) confidenceBar.style.width = '98%';
+        if (liveDetectedText) {
+            liveDetectedText.textContent = '—';
+            liveDetectedText.classList.add('text-on-surface-variant/40');
+            liveDetectedText.classList.remove('text-primary');
+        }
+        if (fsLiveDetectedWord) {
+            fsLiveDetectedWord.textContent = '—';
+            fsLiveDetectedWord.className = 'text-xl sm:text-3xl font-extrabold text-white/50 tracking-wide truncate';
+        }
+        if (fsConfidenceText) fsConfidenceText.textContent = '0%';
+        if (fsConfidenceDot) fsConfidenceDot.className = 'w-2 h-2 rounded-full bg-slate-400';
+        if (fsConfidenceBadge) {
+            fsConfidenceBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-slate-300 border border-white/15 flex items-center gap-1.5';
+        }
+        if (detectedCategory) detectedCategory.textContent = 'Arahkan gestur tangan ke kamera untuk mulai menerjemahkan isyarat SIBI secara langsung.';
+        if (confidenceBadge) {
+            confidenceBadge.textContent = '0%';
+            confidenceBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant';
+        }
+        if (confidenceBar) confidenceBar.style.width = '0%';
         if (fpsDisplay) fpsDisplay.textContent = '0';
         if (handCountDisplay) handCountDisplay.textContent = '0 Tangan';
         if (holdProgressBar) holdProgressBar.style.width = '0%';
-        if (activeHandOverlay) activeHandOverlay.classList.remove('hidden');
+        if (activeHandOverlay) activeHandOverlay.classList.add('hidden');
+        if (stabilityBadgeText) stabilityBadgeText.textContent = 'Menunggu Input';
         const leftCountEl = document.getElementById('leftLandmarksCount');
         const rightCountEl = document.getElementById('rightLandmarksCount');
         if (leftCountEl) leftCountEl.textContent = '0';
@@ -572,10 +707,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------------------------------
     // 6. Sentence Builder Actions with Interactive Tags
     // ----------------------------------------------------
-    let sentenceWords = ['HALO', 'SELAMAT SIANG', 'SUSU COKELAT', 'TERIMA KASIH'];
+    let sentenceWords = [];
 
     function appendWordToSentence(word) {
-        if (!word || word === '-' || word === '...') return;
+        if (!word || word === '-' || word === '...' || word === '—') return;
         const clean = word.trim().toUpperCase();
         if (!clean) return;
         sentenceWords.push(clean);
@@ -598,9 +733,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (sentenceWords.length === 0) {
             sentenceContainer.innerHTML = `
-                <span class="text-on-surface-variant text-xs italic">Buffer kosong. Mulai lakukan isyarat di hadapan kamera...</span>
+                <div class="w-full h-full min-h-[80px] flex flex-col items-center justify-center text-center p-3 text-on-surface-variant/60 select-none">
+                    <span class="material-symbols-outlined text-2xl text-outline-variant/60 mb-1">chat_bubble_outline</span>
+                    <span class="text-xs font-medium">Belum ada frasa terkumpul</span>
+                    <span class="text-[11px] text-outline-variant">Lakukan isyarat di depan kamera untuk merangkai kalimat</span>
+                </div>
             `;
             charCount.textContent = '0 Frasa Terkumpul';
+
+            if (fsSentenceContainer) {
+                fsSentenceContainer.innerHTML = `
+                    <span class="text-xs sm:text-sm text-slate-300 italic flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px] text-slate-400">subtitles</span>
+                        <span>Belum ada rangkaian kalimat • Peragakan gestur di depan kamera</span>
+                    </span>
+                `;
+            }
         } else {
             sentenceContainer.innerHTML = sentenceWords.map((w, idx) => {
                 const isLast = (idx === sentenceWords.length - 1);
@@ -626,6 +774,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     removeWordAt(idx);
                 });
             });
+
+            if (fsSentenceContainer) {
+                fsSentenceContainer.innerHTML = sentenceWords.map((w, idx) => {
+                    const isLast = (idx === sentenceWords.length - 1);
+                    const bgClass = isLast 
+                        ? 'bg-blue-600 text-white font-bold shadow-md' 
+                        : 'bg-white/20 text-white font-semibold';
+                    return `
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg ${bgClass} text-xs sm:text-sm shrink-0 border border-white/15">
+                            <span>${escapeHtml(w)}</span>
+                            <button type="button" class="fs-btn-remove-tag hover:text-red-300 text-white/80 text-[14px] leading-none cursor-pointer" data-word-idx="${idx}" title="Hapus frasa ini">×</button>
+                        </span>
+                    `;
+                }).join('');
+
+                fsSentenceContainer.querySelectorAll('.fs-btn-remove-tag').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const idx = parseInt(btn.dataset.wordIdx, 10);
+                        removeWordAt(idx);
+                    });
+                });
+            }
 
             charCount.textContent = `${sentenceWords.length} Frasa Terkumpul`;
         }
@@ -745,21 +916,75 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function toggleFullscreen() {
+        const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+        const target = cameraViewportArea || document.getElementById('cameraViewportArea');
+        if (!isFs) {
+            if (target && target.requestFullscreen) {
+                target.requestFullscreen();
+            } else if (target && target.webkitRequestFullscreen) {
+                target.webkitRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+    }
+
     if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', () => {
-            const viewport = document.getElementById('cameraViewportArea') || document.querySelector('.lg\\:col-span-7');
-            if (!document.fullscreenElement) {
-                if (viewport && viewport.requestFullscreen) {
-                    viewport.requestFullscreen();
-                } else if (viewport && viewport.webkitRequestFullscreen) {
-                    viewport.webkitRequestFullscreen();
-                }
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+    }
+
+    function onFullscreenChange() {
+        const target = cameraViewportArea || document.getElementById('cameraViewportArea');
+        const isFs = document.fullscreenElement === target || document.webkitFullscreenElement === target;
+        if (target) {
+            if (isFs) {
+                target.classList.add('is-camera-fullscreen');
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+                target.classList.remove('is-camera-fullscreen');
+            }
+        }
+        if (fullscreenBtn) {
+            const icon = fullscreenBtn.querySelector('.material-symbols-outlined');
+            if (icon) icon.textContent = isFs ? 'fullscreen_exit' : 'fullscreen';
+            fullscreenBtn.setAttribute('title', isFs ? 'Keluar Layar Penuh (Esc)' : 'Layar Penuh');
+        }
+    }
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+    // Fullscreen Overlay Quick Buttons
+    if (fsSpeakCurrentBtn) {
+        fsSpeakCurrentBtn.addEventListener('click', () => {
+            const word = fsLiveDetectedWord ? fsLiveDetectedWord.textContent.trim() : '';
+            if (word && word !== '—' && word !== '...') {
+                speakText(word);
             }
         });
+    }
+
+    if (fsSpeakSentenceBtn) {
+        fsSpeakSentenceBtn.addEventListener('click', () => {
+            if (sentenceWords.length > 0) {
+                speakText(sentenceWords.join(' '));
+            }
+        });
+    }
+
+    if (fsClearBtn) {
+        fsClearBtn.addEventListener('click', () => {
+            sentenceWords = [];
+            updateSentenceDisplay();
+        });
+    }
+
+    if (fsExitBtn) {
+        fsExitBtn.addEventListener('click', toggleFullscreen);
     }
 
     // ----------------------------------------------------
@@ -1021,21 +1246,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (fullscreenBtn && cameraViewportArea) {
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                if (cameraViewportArea.requestFullscreen) {
-                    cameraViewportArea.requestFullscreen();
-                } else if (cameraViewportArea.webkitRequestFullscreen) {
-                    cameraViewportArea.webkitRequestFullscreen();
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        });
-    }
 
     if (btnToggleMirror) {
         btnToggleMirror.addEventListener('click', () => {
@@ -1259,6 +1469,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    resetLiveDisplay();
+    updateSentenceDisplay();
     initMediaPipeHands();
     loadModel();
+    // Default kamera mati (kamera akan dinyalakan saat tombol diklik pengguna)
 });

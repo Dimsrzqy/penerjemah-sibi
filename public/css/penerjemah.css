@@ -50,3 +50,47 @@
 #sentenceContainer::-webkit-scrollbar-thumb:hover {
     background: rgba(100, 116, 139, 0.4);
 }
+
+/* ============================================================
+   FULLSCREEN TRANSLATION OVERLAY RULES
+   ============================================================ */
+
+/* Secara default di mode normal/grid, overlay tersembunyi */
+#fullscreenTranslationOverlay {
+    display: none !important;
+}
+
+/* Ketika cameraViewportArea masuk mode Fullscreen browser */
+#cameraViewportArea:fullscreen #fullscreenTranslationOverlay,
+#cameraViewportArea:-webkit-full-screen #fullscreenTranslationOverlay,
+#cameraViewportArea:-moz-full-screen #fullscreenTranslationOverlay,
+#cameraViewportArea:-ms-fullscreen #fullscreenTranslationOverlay,
+#cameraViewportArea.is-camera-fullscreen #fullscreenTranslationOverlay {
+    display: flex !important;
+}
+
+#cameraViewportArea:fullscreen,
+#cameraViewportArea:-webkit-full-screen,
+#cameraViewportArea.is-camera-fullscreen {
+    aspect-ratio: auto !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    border-radius: 0 !important;
+}
+
+/* Scrollbar horizontal untuk buffer subtitle fullscreen */
+#fsSentenceContainer::-webkit-scrollbar {
+    height: 4px;
+}
+#fsSentenceContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+#fsSentenceContainer::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+}
+#fsSentenceContainer::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.45);
+}
+
