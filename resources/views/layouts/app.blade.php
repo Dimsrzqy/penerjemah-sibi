@@ -296,7 +296,7 @@
     </header>
 
     <!-- Main Content Area -->
-    <main class="flex-grow {{ request()->routeIs('beranda') ? 'pt-0 pb-16 px-3.5 sm:px-6 md:px-10 w-full' : (request()->routeIs('penerjemah') ? 'pt-2 pb-12 sm:pb-20 px-3.5 sm:px-6 lg:px-8 w-full max-w-[1360px] mx-auto' : 'pt-6 pb-16 px-3.5 sm:px-6 md:px-10 w-full max-w-[1280px] mx-auto') }}">
+    <main class="flex-grow {{ request()->routeIs('beranda') ? 'pt-0 pb-16 px-3.5 sm:px-6 md:px-10 w-full' : (request()->routeIs('penerjemah') ? 'pt-2 pb-12 sm:pb-20 px-3.5 sm:px-6 lg:px-8 w-full max-w-[1360px] mx-auto' : (request()->routeIs('quiz') ? 'pt-3 sm:pt-5 pb-12 sm:pb-16 px-3.5 sm:px-6 md:px-8 w-full max-w-[1280px] mx-auto' : 'pt-6 pb-16 px-3.5 sm:px-6 md:px-10 w-full max-w-[1280px] mx-auto')) }}">
         @yield('content')
     </main>
 

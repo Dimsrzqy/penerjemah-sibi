@@ -83,25 +83,13 @@
 }
 
 .difficulty-card {
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    gap: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     width: 100%;
-    min-height: 15rem;
-    padding: 1.25rem;
-    border: 1px solid #d3d8e5;
-    border-radius: 1.125rem;
-    background: #fff;
-    color: #0b1c30;
     text-align: left;
     cursor: pointer;
-    transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
-}
-
-.difficulty-card:hover {
-    border-color: #0058be;
-    background: #f8f9ff;
-    transform: translateY(-2px);
+    transition: all 200ms ease;
 }
 
 .difficulty-card:focus-visible {
@@ -178,12 +166,7 @@
 
 @media (max-width: 767px) {
     .difficulty-card {
-        min-height: 13rem;
-        padding: 1.125rem;
-    }
-
-    .difficulty-card__content {
-        gap: 0.3rem;
+        min-height: auto;
     }
 }
 
