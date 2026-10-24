@@ -251,6 +251,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Stepper Navigation Elements (Unified Component)
+    const quizStepperWrapper = document.getElementById('quizStepperWrapper');
+    const stepper1Active = document.getElementById('stepper1Active');
+    const step1DoneIndicator = document.getElementById('step1DoneIndicator');
+    const stepper2Upcoming = document.getElementById('stepper2Upcoming');
+    const stepper2Active = document.getElementById('stepper2Active');
+
+    function updateStepperUI(step) {
+        if (!quizStepperWrapper) return;
+        if (step === 'name') {
+            quizStepperWrapper.classList.remove('hidden');
+            if (stepper1Active) stepper1Active.classList.remove('hidden');
+            if (step1DoneIndicator) step1DoneIndicator.classList.add('hidden');
+            if (stepper2Upcoming) stepper2Upcoming.classList.remove('hidden');
+            if (stepper2Active) stepper2Active.classList.add('hidden');
+        } else if (step === 'difficulty') {
+            quizStepperWrapper.classList.remove('hidden');
+            if (stepper1Active) stepper1Active.classList.add('hidden');
+            if (step1DoneIndicator) step1DoneIndicator.classList.remove('hidden');
+            if (stepper2Upcoming) stepper2Upcoming.classList.add('hidden');
+            if (stepper2Active) stepper2Active.classList.remove('hidden');
+        } else {
+            quizStepperWrapper.classList.add('hidden');
+        }
+    }
+
     // ----------------------------------------------------
     // Step Navigation
     // ----------------------------------------------------
@@ -262,6 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
             stepQuizArenaContainer.classList.remove('flex');
         }
         if (stepSummaryContainer) stepSummaryContainer.classList.add('hidden');
+
+        updateStepperUI(step);
 
         if (step === 'name') {
             if (stepNameContainer) stepNameContainer.classList.remove('hidden');
@@ -308,6 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyGuestToUI(guest) {
         if (displayNameBadge) displayNameBadge.textContent = guest.name;
         if (playerActiveName) playerActiveName.textContent = guest.name;
+        const step1PlayerName = document.getElementById('step1PlayerName');
+        if (step1PlayerName) step1PlayerName.textContent = guest.name;
         if (summaryGuestName) summaryGuestName.textContent = guest.name;
         if (playerAvatarLetter) playerAvatarLetter.textContent = (guest.name.charAt(0) || 'G').toUpperCase();
         if (summaryBtnName) {
@@ -316,8 +346,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
-    // STEP 1: Guest Name Submission
+    // STEP 1: Guest Name Submission & Live UI Elements
     // ----------------------------------------------------
+    const charCounter = document.getElementById('char-counter');
+    const clearBtn = document.getElementById('clear-btn');
+    const avatarPreviewChar = document.getElementById('avatar-preview-char');
+
+    if (guestNameInput) {
+        guestNameInput.addEventListener('input', () => {
+            const val = guestNameInput.value;
+            if (charCounter) charCounter.textContent = val.length;
+            if (avatarPreviewChar) {
+                avatarPreviewChar.textContent = val.trim().length > 0 ? val.trim().charAt(0).toUpperCase() : 'T';
+            }
+            if (clearBtn) {
+                if (val.length > 0) {
+                    clearBtn.classList.remove('hidden');
+                    clearBtn.classList.add('flex');
+                } else {
+                    clearBtn.classList.add('hidden');
+                    clearBtn.classList.remove('flex');
+                }
+            }
+        });
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                guestNameInput.value = '';
+                if (charCounter) charCounter.textContent = '0';
+                if (avatarPreviewChar) avatarPreviewChar.textContent = 'T';
+                clearBtn.classList.add('hidden');
+                clearBtn.classList.remove('flex');
+                guestNameInput.focus();
+            });
+        }
+    }
+
+    if (step1DoneIndicator) {
+        step1DoneIndicator.addEventListener('click', () => {
+            switchToNewUser();
+        });
+    }
+
     if (formGuestName) {
         formGuestName.addEventListener('submit', async (e) => {
             e.preventDefault();
