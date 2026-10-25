@@ -76,6 +76,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const questionTimerBar = document.getElementById('questionTimerBar');
     const timerIconWrapper = document.getElementById('timerIconWrapper');
 
+    // Stitch Imported Prompt Card & Hint Elements
+    const targetWordTitle = document.getElementById('targetWordTitle');
+    const targetWordSyllable = document.getElementById('targetWordSyllable');
+    const hintToggleBtn = document.getElementById('hint-toggle-btn');
+    const hintContainer = document.getElementById('hint-container');
+    const hintBtnLabel = document.getElementById('hint-btn-label');
+    const hintText = document.getElementById('hint-text');
+    const verificationStatusText = document.getElementById('verificationStatusText');
+
     // Settings Modal Elements
     const settingsModal = document.getElementById('settingsModal');
     const btnCloseSettings = document.getElementById('btnCloseSettings');
@@ -576,6 +585,157 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----------------------------------------------------
+    // STITCH HELPERS: Syllables, Gesture Guide, & Question Queue
+    // ----------------------------------------------------
+    const syllableMap = {
+        'SAYA': '[Sa - ya]',
+        'KAMU': '[Ka - mu]',
+        'DIA': '[Di - a]',
+        'KAMI': '[Ka - mi]',
+        'KITA': '[Ki - ta]',
+        'KALIAN': '[Ka - li - an]',
+        'MEREKA': '[Me - re - ka]',
+        'IBU': '[I - bu]',
+        'AYAH': '[A - yah]',
+        'KAKEK': '[Ka - kek]',
+        'ADIK': '[A - dik]',
+        'KELUARGA': '[Ke - lu - ar - ga]',
+        'KULIAH': '[Ku - li - ah]',
+        'SENANG': '[Se - nang]',
+        'BERTEMU': '[Ber - te - mu]',
+        'CANTIK': '[Can - tik]',
+        'GANTENG': '[Gan - teng]',
+        'PELIT': '[Pe - lit]',
+        'KURUS': '[Ku - rus]',
+        'GEMUK': '[Ge - muk]',
+        'LUCU': '[Lu - cu]',
+        'PINTAR': '[Pin - tar]',
+        'BAIK': '[Ba - ik]',
+        'SAKIT': '[Sa - kit]',
+        'SABAR': '[Sa - bar]',
+        'MAU': '[Ma - u]',
+        'PULANG': '[Pu - lang]',
+        'TINGGAL': '[Ting - gal]',
+        'NAMA': '[Na - ma]',
+        'UMUR': '[U - mur]',
+        'KAMPUS': '[Kam - pus]',
+        'SEKOLAH': '[Se - ko - lah]',
+        'SEMESTER': '[Se - mes - ter]',
+        'KELAS': '[Ke - las]',
+        'HOBI': '[Ho - bi]',
+        'JURUSAN': '[Ju - ru - san]',
+        'PENDIDIKAN': '[Pen - di - di - kan]',
+        'KABAR': '[Ka - bar]',
+        'DARI': '[Da - ri]',
+        'PAGI': '[Pa - gi]',
+        'SIANG': '[Si - ang]',
+        'SORE': '[So - re]',
+        'MALAM': '[Ma - lam]',
+        'SENIN': '[Se - nin]',
+        'SELASA': '[Se - la - sa]',
+        'RABU': '[Ra - bu]',
+        'KAMIS': '[Ka - mis]',
+        'JUMAT': '[Ju - mat]',
+        'SABTU': '[Sab - tu]',
+        'MINGGU': '[Ming - gu]',
+        'TERIMA KASIH': '[Te - ri - ma • Ka - sih]',
+        'SELAMAT PAGI': '[Se - la - mat • Pa - gi]',
+        'SELAMAT MALAM': '[Se - la - mat • Ma - lam]',
+        'SAMPAI JUMPA': '[Sam - pai • Jum - pa]',
+        'KABAR BAIK': '[Ka - bar • Ba - ik]'
+    };
+
+    function getSyllableText(target) {
+        if (!target) return '';
+        const upper = target.trim().toUpperCase();
+        if (syllableMap[upper]) return syllableMap[upper];
+
+        const parts = upper.split(/\s+/);
+        return '[' + parts.map(p => syllableMap[p] ? syllableMap[p].replace(/[\[\]]/g, '') : p).join(' • ') + ']';
+    }
+
+    const hintMap = {
+        'TERIMA KASIH': 'Tempelkan ujung jemari tangan kanan terbuka pada dagu, lalu gerakkan tangan perlahan ke arah depan.',
+        'SAYA': 'Tunjuk ke arah dada Anda menggunakan jari telunjuk tangan kanan.',
+        'KAMU': 'Arahkan jari telunjuk tangan kanan lurus ke depan menghadap lawan bicara.',
+        'IBU': 'Sentuh pipi kanan Anda dengan jempol tangan kanan yang terbuka secara lembut.',
+        'AYAH': 'Sentuh dahi kanan Anda dengan jempol tangan kanan yang terbuka.',
+        'KULIAH': 'Buka telapak tangan kiri rata, lalu tempelkan tangan kanan yang membentuk huruf K di atasnya.',
+        'KAMPUS': 'Bentuk simbol bangunan dengan kedua tangan lalu satukan membentuk huruf K.',
+        'BERTEMU': 'Bentuk kedua jari telunjuk tangan tegak saling berhadapan, lalu gerakkan merapat bersamaan.',
+        'SENANG': 'Usapkan kedua telapak tangan terbuka di depan dada dengan gerakan melingkar ke atas.',
+        'PULANG': 'Kuncupkan jemari tangan lalu gerakkan dari depan ke arah samping tubuh.'
+    };
+
+    function getHintGuideText(target) {
+        if (!target) return '';
+        const upper = target.trim().toUpperCase();
+        if (hintMap[upper]) return hintMap[upper];
+        return `Posisikan tangan sejajar dada atau dagu di depan kamera. Lakukan gestur isyarat untuk kata "${upper}" dengan mantap dan tahan sejenak hingga AI memverifikasi.`;
+    }
+
+    // Hint Drawer Toggle Listener (Stitch Screen 746b1218917c45429b05ee1825fa5c20)
+    if (hintToggleBtn && hintContainer) {
+        hintToggleBtn.addEventListener('click', () => {
+            const isHidden = hintContainer.classList.contains('hidden');
+            if (isHidden) {
+                hintContainer.classList.remove('hidden');
+                if (hintBtnLabel) hintBtnLabel.textContent = 'Sembunyikan Petunjuk Isyarat';
+            } else {
+                hintContainer.classList.add('hidden');
+                if (hintBtnLabel) hintBtnLabel.textContent = 'Lihat Petunjuk Isyarat SIBI';
+            }
+        });
+    }
+
+    // Render Question Queue (Stitch Upcoming Questions List)
+    function renderQuestionQueue(currentIndex) {
+        const queueEl = document.getElementById('quizQuestionQueue');
+        const queueDiffLabel = document.getElementById('queueDifficultyLabel');
+        if (queueDiffLabel) {
+            queueDiffLabel.textContent = `Tingkat ${selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1)}`;
+        }
+        if (!queueEl) return;
+        queueEl.innerHTML = '';
+
+        questions.forEach((q, idx) => {
+            const item = document.createElement('div');
+            const isPassed = idx < currentIndex;
+            const isCurrent = idx === currentIndex;
+
+            if (isPassed) {
+                item.className = 'flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-500 opacity-80';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="material-symbols-outlined text-emerald-600 text-[16px] shrink-0">check_circle</span>
+                        <span class="text-xs font-semibold truncate line-through">${idx + 1}. ${q.word_target}</span>
+                    </div>
+                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">Selesai</span>
+                `;
+            } else if (isCurrent) {
+                item.className = 'flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-blue-600 text-white shadow-xs';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-4 h-4 rounded-full bg-white text-blue-600 flex items-center justify-center text-[9px] font-black shrink-0">${idx + 1}</span>
+                        <span class="text-xs font-bold truncate">${idx + 1}. ${q.word_target}</span>
+                    </div>
+                    <span class="text-[9px] font-bold bg-white/20 px-2 py-0.5 rounded-full shrink-0">Sedang Berjalan</span>
+                `;
+            } else {
+                item.className = 'flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-700';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[9px] font-bold shrink-0">${idx + 1}</span>
+                        <span class="text-xs font-medium truncate">${idx + 1}. ${q.word_target}</span>
+                    </div>
+                    <span class="text-[10px] font-medium text-slate-400 shrink-0">Berikutnya</span>
+                `;
+            }
+            queueEl.appendChild(item);
+        });
+    }
+
+    // ----------------------------------------------------
     // STEP 3: Question Display & Sequential Word Chips
     // ----------------------------------------------------
     function loadQuestion(index) {
@@ -601,7 +761,14 @@ document.addEventListener('DOMContentLoaded', () => {
         subWords = rawTarget.split(/\s+/).filter(w => w.length > 0);
         currentSubWordIndex = 0;
 
+        // Stitch Prompt & Guide Updates
+        if (targetWordTitle) targetWordTitle.textContent = q.word_target || '-';
+        if (targetWordSyllable) targetWordSyllable.textContent = getSyllableText(q.word_target);
+        if (hintText) hintText.textContent = getHintGuideText(q.word_target);
+        if (verificationStatusText) verificationStatusText.textContent = 'Menunggu Pose';
+
         renderWordChips();
+        renderQuestionQueue(index);
         resetInactivityTimer();
 
         // Mulai hitung mundur 10 detik untuk soal ini
@@ -616,6 +783,33 @@ document.addEventListener('DOMContentLoaded', () => {
         timeLeft = QUESTION_TIME_LIMIT;
         updateTimerUI();
 
+        if (!isCameraRunning) {
+            // Tunggu hingga kamera aktif sebelum mulai menghitung mundur
+            return;
+        }
+
+        questionTimerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerUI();
+
+            if (timeLeft <= 0) {
+                stopQuestionTimer();
+                handleQuestionTimeout();
+            }
+        }, 1000);
+    }
+
+    function resumeQuestionCountdown() {
+        if (isQuestionCompleted) return;
+        if (questionTimerInterval) return;
+        if (!stepQuizArenaContainer || stepQuizArenaContainer.classList.contains('hidden')) return;
+
+        if (typeof timeLeft !== 'number' || timeLeft <= 0) {
+            startQuestionCountdown();
+            return;
+        }
+
+        updateTimerUI();
         questionTimerInterval = setInterval(() => {
             timeLeft--;
             updateTimerUI();
@@ -677,6 +871,8 @@ document.addEventListener('DOMContentLoaded', () => {
         isQuestionCompleted = true;
         wrongCount++;
 
+        if (verificationStatusText) verificationStatusText.textContent = 'Waktu Habis (0 Pts)';
+
         // Reset progress tahan isyarat
         holdFrames = 0;
         if (holdProgressBar) holdProgressBar.style.width = '0%';
@@ -729,39 +925,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (subWords.length === 1) {
             // Single word (Tingkat Mudah)
-            if (targetPromptBadge) targetPromptBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span><span>Tantangan 1 Kata (10s)</span>';
+            if (targetPromptBadge) {
+                targetPromptBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span><span>Tantangan 1 Kata (10s)</span>';
+            }
             if (targetPromptSubtitle) {
-                targetPromptSubtitle.innerHTML = 'Peragakan kata di bawah sebelum waktu <strong>10 detik</strong> habis:';
+                targetPromptSubtitle.innerHTML = '';
             }
 
             const isMatched = currentSubWordIndex > 0;
             const chip = document.createElement('div');
-            chip.className = `word-step-card px-5 py-1.5 sm:py-2 rounded-xl font-extrabold text-sm sm:text-base tracking-wider transition-all shadow-xs flex items-center gap-2 min-w-[140px] justify-center ${
+            chip.className = `px-4 py-1.5 rounded-xl font-bold text-xs tracking-wider transition-all shadow-xs flex items-center gap-2 justify-center ${
                 isMatched 
-                    ? 'bg-emerald-500 text-white shadow-emerald-500/20 ring-2 ring-emerald-400/50' 
-                    : 'bg-primary text-on-primary word-step-active ring-2 ring-primary/40'
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                    : 'bg-blue-600 text-white border border-blue-700/20'
             }`;
 
             chip.innerHTML = `
-                <div class="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
-                    ${isMatched 
-                        ? '<span class="material-symbols-outlined text-[10px]">check</span><span>Selesai</span>' 
-                        : '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span><span>Peragakan</span>'
-                    }
-                </div>
-                <div class="flex items-center gap-1.5">
-                    <span>${subWords[0]}</span>
-                    ${isMatched ? '<span class="material-symbols-outlined text-base">check_circle</span>' : ''}
-                </div>
+                <span class="w-4 h-4 rounded-full ${isMatched ? 'bg-emerald-600 text-white' : 'bg-white text-blue-600'} flex items-center justify-center text-[10px] font-black shrink-0">
+                    ${isMatched ? '<span class="material-symbols-outlined text-[12px]">check</span>' : '1'}
+                </span>
+                <span class="uppercase tracking-wider font-extrabold">${subWords[0]}</span>
+                ${isMatched ? '<span class="text-[10px] font-bold text-emerald-600 bg-white/60 px-1.5 py-0.2 rounded-full">Selesai</span>' : '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>'}
             `;
             targetWordsContainer.appendChild(chip);
         } else {
             // Multi-word (Tingkat Sedang 2 Kata / Tingkat Susah 3-4 Kata)
             if (targetPromptBadge) {
-                targetPromptBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span><span>Rangkaian ${subWords.length} Kata (10s)</span>`;
+                targetPromptBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span><span>Rangkaian ${subWords.length} Kata (10s)</span>`;
             }
             if (targetPromptSubtitle) {
-                targetPromptSubtitle.innerHTML = `Peragakan <strong>${subWords.length} kata</strong> berurutan (total <strong>10s</strong>):`;
+                targetPromptSubtitle.innerHTML = '';
             }
 
             subWords.forEach((word, idx) => {
@@ -772,14 +965,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Tanda panah penghubung antar kata dalam rangkaian
                 if (idx > 0) {
                     const arrowEl = document.createElement('div');
-                    arrowEl.className = `flex items-center justify-center px-0.5 transition-all ${
-                        isPassed ? 'text-emerald-500 font-bold' : (isCurrent ? 'text-primary font-bold' : 'text-outline-variant/60')
-                    }`;
-                    arrowEl.innerHTML = `
-                        <span class="material-symbols-outlined text-sm sm:text-base ${isCurrent ? 'step-arrow-pulse' : ''}">
-                            arrow_forward
-                        </span>
-                    `;
+                    arrowEl.className = 'flex items-center justify-center px-1 text-slate-300 select-none';
+                    arrowEl.innerHTML = `<span class="material-symbols-outlined text-base">arrow_forward</span>`;
                     targetWordsContainer.appendChild(arrowEl);
                 }
 
@@ -787,26 +974,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (isPassed) {
                     // SUDAH TERVERIFIKASI
-                    card.className = 'word-step-card px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl font-extrabold transition-all shadow-xs bg-emerald-500 text-white flex items-center gap-1.5 text-xs sm:text-sm';
+                    card.className = 'px-3 py-1.5 rounded-xl font-bold transition-all shadow-xs bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5 text-xs';
                     card.innerHTML = `
-                        <span class="text-[9px] font-mono bg-white/20 px-1.5 py-0.2 rounded-md">${idx + 1}</span>
-                        <span class="tracking-wide">${word}</span>
-                        <span class="material-symbols-outlined text-xs">check_circle</span>
+                        <span class="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                            <span class="material-symbols-outlined text-[12px]">check</span>
+                        </span>
+                        <span class="tracking-wider uppercase font-bold line-through opacity-75">${word}</span>
                     `;
                 } else if (isCurrent) {
                     // SEDANG AKTIF (PERAGAKAN SEKARANG)
-                    card.className = 'word-step-card px-3.5 py-1.5 sm:px-4 sm:py-1.5 rounded-xl font-extrabold transition-all shadow-sm ring-2 ring-primary/40 bg-primary text-on-primary flex items-center gap-1.5 text-xs sm:text-sm word-step-active';
+                    card.className = 'px-3.5 py-1.5 rounded-xl font-extrabold transition-all shadow-xs bg-blue-600 text-white border border-blue-700/20 flex items-center gap-2 text-xs';
                     card.innerHTML = `
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                        <span class="text-[9px] font-mono bg-white/25 px-1.5 py-0.2 rounded-md">${idx + 1}</span>
-                        <span class="tracking-wide">${word}</span>
+                        <span class="w-4 h-4 rounded-full bg-white text-blue-600 flex items-center justify-center text-[10px] font-black shrink-0">${idx + 1}</span>
+                        <span class="tracking-wider uppercase font-black">${word}</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                     `;
                 } else {
                     // MENUNGGU GILIRAN
-                    card.className = 'word-step-card px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl font-semibold transition-all bg-surface-container-high text-on-surface-variant/80 border border-outline-variant/30 flex items-center gap-1.5 text-xs sm:text-sm opacity-80';
+                    card.className = 'px-3 py-1.5 rounded-xl font-semibold transition-all bg-slate-100 text-slate-500 border border-slate-200/70 flex items-center gap-1.5 text-xs';
                     card.innerHTML = `
-                        <span class="text-[9px] font-mono bg-surface-container-highest text-on-surface-variant/70 px-1.5 py-0.2 rounded-md">${idx + 1}</span>
-                        <span class="tracking-wide">${word}</span>
+                        <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-[10px] font-bold shrink-0">${idx + 1}</span>
+                        <span class="tracking-wider uppercase text-slate-600">${word}</span>
                     `;
                 }
 
@@ -850,6 +1038,8 @@ document.addEventListener('DOMContentLoaded', () => {
             isQuestionCompleted = true;
             stopQuestionTimer();
             correctCount++;
+
+            if (verificationStatusText) verificationStatusText.textContent = 'Terverifikasi (100%)';
 
             // Hitung poin untuk soal ini:
             let earnedPoints = pointsPerQuestion;
@@ -1467,6 +1657,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     holdFrames++;
                     const progress = Math.min(100, Math.round((holdFrames / HOLD_FRAMES_TARGET) * 100));
                     if (holdProgressBar) holdProgressBar.style.width = `${progress}%`;
+                    if (verificationStatusText) {
+                        verificationStatusText.textContent = `Menahan Pose (${(holdFrames * 0.1).toFixed(1)}s / 1.0s)`;
+                    }
                     if (bottomHintText) {
                         bottomHintText.textContent = `Isyarat Cocok! Tahan pose: "${predictedClass}" (${confPercent}%)`;
                         bottomHintText.className = 'text-[11px] text-emerald-300 bg-black/80 px-3.5 py-1 rounded-full backdrop-blur-md border border-emerald-500/30';
@@ -1524,6 +1717,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             startMediaPipeLoop();
+            resumeQuestionCountdown();
         } catch (err) {
             console.error('Gagal mengakses kamera:', err);
             alert('Tidak dapat mengaktifkan kamera. Pastikan izin kamera telah diberikan pada browser Anda.');

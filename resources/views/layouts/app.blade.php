@@ -371,15 +371,27 @@
             const openIcon = document.getElementById('menuOpenIcon');
             const closeIcon = document.getElementById('menuCloseIcon');
 
-            // Scroll Handler for Dynamic Island Morph
+            // Scroll Handler: Dynamic Island saat scroll ke bawah, kembali ke navbar semula saat scroll ke atas
             if (mainHeader) {
+                let lastScrollY = Math.max(0, window.scrollY);
                 let ticking = false;
+
                 const updateHeader = () => {
-                    if (window.scrollY > 40) {
+                    const currentScrollY = Math.max(0, window.scrollY);
+                    const delta = currentScrollY - lastScrollY;
+
+                    if (currentScrollY <= 20) {
+                        // Di paling atas: selalu tampilkan navbar semula
+                        mainHeader.classList.remove('is-scrolled');
+                    } else if (delta > 5 && currentScrollY > 40) {
+                        // Scroll KE BAWAH: berubah jadi Dynamic Island Capsule
                         mainHeader.classList.add('is-scrolled');
-                    } else {
+                    } else if (delta < -5) {
+                        // Scroll KE ATAS: langsung kembali menjadi navbar semula
                         mainHeader.classList.remove('is-scrolled');
                     }
+
+                    lastScrollY = currentScrollY;
                     ticking = false;
                 };
 
@@ -402,6 +414,7 @@
                     drawer.classList.remove('hidden');
                     if (openIcon) openIcon.classList.add('hidden');
                     if (closeIcon) closeIcon.classList.remove('hidden');
+                    if (mainHeader) mainHeader.classList.remove('is-scrolled');
                 } else {
                     drawer.classList.add('hidden');
                     if (openIcon) openIcon.classList.remove('hidden');
