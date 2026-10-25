@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalDesc = document.getElementById('modalDesc');
     const modalMediaContainer = document.getElementById('modalMediaContainer');
     const modalCloseBtn = document.getElementById('modalCloseBtn');
-    const modalCloseActionBtn = document.getElementById('modalCloseActionBtn');
+    const modalHeaderTitle = document.getElementById('modalHeaderTitle');
+    const modalCategoryPill = document.getElementById('modalCategoryPill');
 
     let activeCategory = 'all';
 
@@ -81,6 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (modalTitle) modalTitle.textContent = title;
             if (modalCategory) modalCategory.textContent = category;
+            if (modalHeaderTitle) modalHeaderTitle.textContent = title ? `${title} — Kosakata SIBI` : 'Kamus SIBI';
+            if (modalCategoryPill) modalCategoryPill.textContent = category || 'Kosakata';
             if (modalDesc) modalDesc.textContent = desc;
 
             if (modalMediaContainer) {
@@ -146,10 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
-    if (modalCloseActionBtn) modalCloseActionBtn.addEventListener('click', closeModal);
     if (detailModal) {
         detailModal.addEventListener('click', (e) => {
             if (e.target === detailModal) closeModal();
         });
     }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && detailModal && !detailModal.classList.contains('pointer-events-none')) {
+            closeModal();
+        }
+    });
 });

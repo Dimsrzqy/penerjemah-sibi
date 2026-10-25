@@ -285,50 +285,48 @@
     <!-- ======================================================== -->
     <!-- TAHAP 3: ARENA KUIS BERBASIS KAMERA MEDIAPIPE            -->
     <!-- ======================================================== -->
-    <div id="stepQuizArenaContainer" class="hidden flex-col space-y-4 sm:space-y-5">
+    <div id="stepQuizArenaContainer" class="hidden flex-col space-y-2.5 sm:space-y-3">
         <!-- Header Info Bar (Mirip Penerjemah Header) -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl border border-outline-variant/20 shadow-xs">
-            <div class="flex items-center gap-3">
-                <div id="playerAvatarLetter" class="w-10 h-10 rounded-2xl bg-primary text-on-primary flex items-center justify-center font-black text-sm shadow-xs shrink-0">
+        <div class="flex flex-row items-center justify-between gap-2 bg-surface-container-low py-2 px-3 sm:px-4 rounded-xl sm:rounded-2xl border border-outline-variant/20 shadow-xs">
+            <div class="flex items-center gap-2.5">
+                <div id="playerAvatarLetter" class="w-8 h-8 rounded-xl bg-primary text-on-primary flex items-center justify-center font-black text-xs shadow-xs shrink-0">
                     G
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Pemain:</span>
-                        <strong id="playerActiveName" class="text-sm sm:text-base font-extrabold text-on-surface">Guest</strong>
-                        <span id="activeDifficultyBadge" class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Pemain:</span>
+                        <strong id="playerActiveName" class="text-xs sm:text-sm font-extrabold text-on-surface">Guest</strong>
+                        <span id="activeDifficultyBadge" class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                             Mudah
                         </span>
                     </div>
-                    <p class="text-xs text-on-surface-variant mt-0.5">
+                    <p class="hidden sm:block text-[11px] text-on-surface-variant leading-none mt-0.5">
                         Tirukan bahasa isyarat SIBI sesuai tantangan soal yang ditampilkan
                     </p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 self-start sm:self-auto flex-wrap">
+            <div class="flex items-center gap-2 shrink-0">
                 <!-- Score Capsule -->
-                <div class="flex items-center gap-2 bg-surface-container-lowest px-3.5 py-1.5 rounded-xl border border-outline-variant/20 shadow-xs">
-                    <span class="material-symbols-outlined text-amber-500 text-lg">stars</span>
+                <div class="flex items-center gap-1.5 bg-surface-container-lowest px-2.5 py-1 rounded-lg border border-outline-variant/20 shadow-xs">
+                    <span class="material-symbols-outlined text-amber-500 text-base">stars</span>
                     <div>
                         <div class="flex items-baseline gap-1">
-                            <span id="quizScoreText" class="text-sm sm:text-base font-black text-primary">0</span>
-                            <span id="quizMaxScoreText" class="text-xs font-bold text-on-surface-variant">/ 100 pts</span>
+                            <span id="quizScoreText" class="text-xs sm:text-sm font-black text-primary">0</span>
+                            <span id="quizMaxScoreText" class="text-[10px] font-bold text-on-surface-variant">/ 100 pts</span>
                         </div>
-                        <span id="pointsPerQBadge" class="text-[9px] text-emerald-600 font-bold block leading-none">+10 pts / soal</span>
+                        <span id="pointsPerQBadge" class="text-[8px] text-emerald-600 font-bold block leading-none">+10 pts / soal</span>
                     </div>
                 </div>
 
                 <!-- Progress Soal Capsule -->
-                <div class="flex items-center gap-2 bg-surface-container-lowest px-3.5 py-1.5 rounded-xl border border-outline-variant/20 shadow-xs">
-                    <span class="material-symbols-outlined text-primary text-lg">quiz</span>
+                <div class="flex items-center gap-1.5 bg-surface-container-lowest px-2.5 py-1 rounded-lg border border-outline-variant/20 shadow-xs">
+                    <span class="material-symbols-outlined text-primary text-base">quiz</span>
                     <div>
-                        <div class="flex items-baseline justify-between gap-2">
-                            <span id="questionProgressText" class="text-xs sm:text-sm font-black text-on-surface">
-                                Soal <span id="currentQNum">1</span> / <span id="totalQNum">5</span>
-                            </span>
-                        </div>
-                        <div class="w-16 sm:w-20 h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-1">
+                        <span id="questionProgressText" class="text-xs font-black text-on-surface leading-none block">
+                            Soal <span id="currentQNum">1</span> / <span id="totalQNum">5</span>
+                        </span>
+                        <div class="w-14 h-1 bg-surface-container-highest rounded-full overflow-hidden mt-1">
                             <div id="progressBarFill" class="h-full bg-primary w-[20%] rounded-full transition-all duration-300"></div>
                         </div>
                     </div>
@@ -337,11 +335,30 @@
         </div>
 
         <!-- Main Workspace Grid (Mirip Penerjemah: 7 Cols Kiri, 5 Cols Kanan) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-start">
             <!-- Left Column: Camera Feed & Controls (7 Cols) -->
-            <div class="lg:col-span-7 flex flex-col space-y-3.5 sm:space-y-4">
-                <!-- Viewport Container -->
-                <div class="relative w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden bg-inverse-surface flex items-center justify-center shadow-lg border border-outline-variant/20">
+            <div class="lg:col-span-7 flex flex-col space-y-2.5">
+                <!-- Viewport Container with macOS Header (Stitch Screen 746b1218917c45429b05ee1825fa5c20) -->
+                <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+                    <!-- macOS Window Header -->
+                    <div class="px-3.5 py-2 bg-slate-100 border-b border-slate-200 flex items-center justify-between select-none">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-[#ff5f56] shadow-xs"></span>
+                            <span class="w-3 h-3 rounded-full bg-[#febd2e] shadow-xs"></span>
+                            <span class="w-3 h-3 rounded-full bg-[#27c93f] shadow-xs"></span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-xs font-semibold text-slate-600">Sensor Kamera & AI SIBI</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-slate-500 text-xs font-semibold">
+                            <span class="material-symbols-outlined text-sm">videocam</span>
+                            <span>Live</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Viewport Frame -->
+                    <div class="relative w-full aspect-video overflow-hidden bg-slate-950 flex items-center justify-center">
                     <!-- Live Video Element -->
                     <video id="webcamVideo" class="absolute inset-0 w-full h-full object-cover hidden mirror-mode" autoplay playsinline muted></video>
 
@@ -354,16 +371,16 @@
                         alt="Camera Standby Background">
 
                     <!-- Standby Status UI Card -->
-                    <div id="standbyOverlay" class="z-20 flex flex-col items-center gap-2.5 text-center px-4 max-w-sm">
-                        <div class="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20 shadow-inner">
-                            <span class="material-symbols-outlined text-3xl text-white opacity-90">videocam_off</span>
+                    <div id="standbyOverlay" class="z-20 flex flex-col items-center gap-2 text-center px-4 max-w-sm">
+                        <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/20 shadow-inner">
+                            <span class="material-symbols-outlined text-2xl text-white opacity-90">videocam_off</span>
                         </div>
-                        <h3 class="text-base sm:text-lg font-bold text-white">Kamera Belum Aktif</h3>
-                        <p class="text-xs text-gray-200 leading-relaxed">
+                        <h3 class="text-sm sm:text-base font-bold text-white">Kamera Belum Aktif</h3>
+                        <p class="text-xs text-gray-200 leading-tight">
                             Klik tombol <strong>"Nyalakan Kamera"</strong> di bawah untuk mendeteksi isyarat SIBI Anda.
                         </p>
-                        <button id="btnQuickStart" type="button" class="mt-1 bg-primary hover:bg-surface-tint text-on-primary font-bold text-xs px-5 py-2.5 rounded-full shadow-md flex items-center gap-1.5 transition-transform active:scale-95 min-h-[44px]">
-                            <span class="material-symbols-outlined text-base">play_arrow</span>
+                        <button id="btnQuickStart" type="button" class="mt-0.5 bg-primary hover:bg-surface-tint text-on-primary font-bold text-xs px-4 py-2 rounded-full shadow-md flex items-center gap-1.5 transition-transform active:scale-95 min-h-[38px]">
+                            <span class="material-symbols-outlined text-sm">play_arrow</span>
                             <span>Aktifkan Kamera Sekarang</span>
                         </button>
                     </div>
@@ -417,107 +434,137 @@
                         <span id="timeoutNoticeText">Waktu Habis! Soal ini bernilai 0 Poin</span>
                     </div>
                 </div>
+            </div>
 
                 <!-- Controls Bar (Mirip Penerjemah) -->
-                <div class="flex flex-wrap items-center justify-between gap-2.5 bg-surface-container-low p-3 sm:p-3.5 rounded-2xl border border-outline-variant/20 shadow-xs">
-                    <div class="flex items-center gap-2">
-                        <button id="btnStartCam" type="button" class="flex items-center justify-center gap-1.5 bg-primary text-on-primary px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-surface-tint active:scale-95 transition-all shadow-xs min-h-[44px]">
-                            <span class="material-symbols-outlined text-lg">videocam</span>
+                <div class="flex flex-wrap items-center justify-between gap-2 bg-surface-container-low py-1.5 px-2.5 sm:px-3 rounded-xl border border-outline-variant/20 shadow-xs">
+                    <div class="flex items-center gap-1.5">
+                        <button id="btnStartCam" type="button" class="flex items-center justify-center gap-1.5 bg-primary text-on-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-surface-tint active:scale-95 transition-all shadow-xs min-h-[36px]">
+                            <span class="material-symbols-outlined text-base">videocam</span>
                             <span>Mulai Kamera</span>
                         </button>
-                        <button id="btnStopCam" type="button" class="hidden items-center justify-center gap-1.5 bg-error text-on-error px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-red-700 active:scale-95 transition-all shadow-xs min-h-[44px]">
-                            <span class="material-symbols-outlined text-lg">videocam_off</span>
+                        <button id="btnStopCam" type="button" class="hidden items-center justify-center gap-1.5 bg-error text-on-error px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-700 active:scale-95 transition-all shadow-xs min-h-[36px]">
+                            <span class="material-symbols-outlined text-base">videocam_off</span>
                             <span>Hentikan</span>
                         </button>
-                        <button id="btnToggleMirror" type="button" class="bg-surface-container hover:bg-surface-container-high text-on-surface w-11 h-11 min-h-[44px] rounded-xl flex items-center justify-center transition-all" title="Mirror Kamera">
-                            <span class="material-symbols-outlined text-lg">flip</span>
-                        </button>
-                        <button id="btnOpenSettings" type="button" class="bg-surface-container hover:bg-surface-container-high text-primary px-3 min-h-[44px] rounded-xl transition-all font-semibold text-xs flex items-center gap-1" title="Pengaturan Model Deep Learning & Landmark">
-                            <span class="material-symbols-outlined text-base text-primary">tune</span>
-                            <span class="hidden sm:inline">Model</span>
+                        <button id="btnToggleMirror" type="button" class="bg-surface-container hover:bg-surface-container-high text-on-surface w-9 h-9 min-h-[36px] rounded-lg flex items-center justify-center transition-all" title="Mirror Kamera">
+                            <span class="material-symbols-outlined text-base">flip</span>
                         </button>
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5">
                         <!-- Fallback Verification Button -->
-                        <button id="btnSimulateMatch" type="button" class="bg-surface-container-highest hover:bg-surface-dim text-primary text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl border border-primary/20 transition-all active:scale-95 flex items-center gap-1.5 min-h-[44px]" title="Verifikasi peragaan kata saat ini jika deteksi otomatis lambat">
-                            <span class="material-symbols-outlined text-base text-emerald-500">task_alt</span>
+                        <button id="btnSimulateMatch" type="button" class="bg-surface-container-highest hover:bg-surface-dim text-primary text-xs font-bold px-3 py-1.5 rounded-lg border border-primary/20 transition-all active:scale-95 flex items-center gap-1 min-h-[36px]" title="Verifikasi peragaan kata saat ini jika deteksi otomatis lambat">
+                            <span class="material-symbols-outlined text-sm text-emerald-500">task_alt</span>
                             <span>Verifikasi Isyarat</span>
                         </button>
 
-                        <button id="btnNextQuestion" type="button" class="hidden items-center gap-1.5 bg-primary text-on-primary px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-surface-tint active:scale-95 transition-all shadow-xs min-h-[44px]">
+                        <button id="btnNextQuestion" type="button" class="hidden items-center gap-1 bg-primary text-on-primary px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-surface-tint active:scale-95 transition-all shadow-xs min-h-[36px]">
                             <span>Soal Selanjutnya</span>
-                            <span class="material-symbols-outlined text-base">arrow_forward</span>
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column: Target Words Challenge & AI Detection (5 Cols) -->
-            <div class="lg:col-span-5 flex flex-col space-y-4">
-                <!-- Card 1: Target Kata Soal & Countdown Timer -->
-                <div class="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-outline-variant/30 shadow-xs relative overflow-hidden space-y-3.5">
-                    <div class="flex items-center justify-between gap-2 flex-wrap">
-                        <span id="targetPromptBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
-                            <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
-                            <span>Tantangan SIBI</span>
+            <!-- Right Column: Target Words Challenge & AI Detection (5 Cols - Stitch Screen 746b1218917c45429b05ee1825fa5c20) -->
+            <div class="lg:col-span-5 flex flex-col space-y-2.5">
+                <!-- Card 1: MAIN PROMPT CARD (Stitch: Challenged Word) -->
+                <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-sm p-3 sm:p-3.5 relative overflow-hidden space-y-2">
+                    <div class="flex items-center justify-between gap-1.5 flex-wrap">
+                        <span id="targetPromptBadge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold uppercase tracking-wider">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span>
+                            <span>Soal <span id="currentQNum">1</span> dari <span id="totalQNum">5</span></span>
                         </span>
 
-                        <!-- Countdown Timer 10 Detik -->
-                        <div id="questionTimerContainer" class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-xl border border-outline-variant/20 shadow-xs transition-all">
-                            <div id="timerIconWrapper" class="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center transition-colors shrink-0">
-                                <span class="material-symbols-outlined text-base">timer</span>
-                            </div>
-                            <span id="questionTimerText" class="text-xs sm:text-sm font-black text-on-surface tracking-tight min-w-[22px]">10s</span>
-                            <div class="w-14 sm:w-16 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                                <div id="questionTimerBar" class="h-full bg-primary w-full rounded-full transition-all"></div>
+                        <div class="flex items-center gap-1.5">
+                            <!-- Points Per Question Badge -->
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold">
+                                <span class="material-symbols-outlined text-xs text-amber-500">stars</span>
+                                <span id="pointsPerQBadge">+10 Pts</span>
+                            </span>
+
+                            <!-- 10-Second Timer -->
+                            <div id="questionTimerContainer" class="flex items-center gap-1 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-200 shadow-xs transition-all">
+                                <div id="timerIconWrapper" class="w-4 h-4 rounded bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-[13px]">timer</span>
+                                </div>
+                                <span id="questionTimerText" class="text-xs font-black text-slate-800 tracking-tight min-w-[18px]">10s</span>
+                                <div class="w-10 sm:w-12 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                    <div id="questionTimerBar" class="h-full bg-blue-600 w-full rounded-full transition-all"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <p id="targetPromptSubtitle" class="text-xs sm:text-sm text-on-surface-variant font-medium leading-relaxed">
-                        Peragakan kata di bawah secara berurutan dalam waktu 10 detik:
+                    <!-- Prominent Central Prompt Area (Stitch Screen 746b1218917c45429b05ee1825fa5c20) -->
+                    <div class="text-center py-2.5 px-3 bg-slate-50 rounded-xl border border-slate-100 flex flex-col items-center justify-center">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Peragakan Gerakan:</span>
+                        <h1 id="targetWordTitle" class="text-2xl sm:text-3xl font-black text-blue-600 tracking-tight leading-none uppercase">
+                            -
+                        </h1>
+                        <div class="mt-1 mb-1">
+                            <span id="targetWordSyllable" class="inline-block text-[11px] font-semibold text-slate-500 bg-slate-200/60 px-2.5 py-0.5 rounded-full border border-slate-200 font-mono tracking-tight">
+                                -
+                            </span>
+                        </div>
+                        <!-- Words List Chips Container (for sequences / SPOK) -->
+                        <div id="targetWordsContainer" class="flex flex-wrap items-center justify-center gap-1.5 pt-1">
+                            <!-- Injected dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Hidden redundant subtitle to keep card clean and uncluttered -->
+                    <p id="targetPromptSubtitle" class="hidden text-[11px] text-slate-500 font-medium leading-tight text-center">
+                        Peragakan isyarat di depan kamera sebelum waktu 10 detik habis.
                     </p>
 
-                    <!-- Words List Chips Container -->
-                    <div id="targetWordsContainer" class="flex flex-wrap items-center gap-2 pt-1 pb-1">
-                        <!-- Dynamically injected words chips -->
+                    <!-- Stitch Hint Collapsible Section -->
+                    <div class="flex flex-col gap-1.5 pt-0.5 border-t border-slate-100">
+                        <button type="button" id="hint-toggle-btn" class="w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs">
+                            <span class="material-symbols-outlined text-[17px] text-amber-500">lightbulb</span>
+                            <span id="hint-btn-label">Lihat Petunjuk Isyarat SIBI</span>
+                            <span class="material-symbols-outlined text-sm text-slate-400">expand_more</span>
+                        </button>
+                        <div id="hint-container" class="hidden p-2.5 bg-blue-50/60 border border-blue-200/70 rounded-xl flex items-start gap-2.5 transition-all">
+                            <div class="w-7 h-7 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-base">sign_language</span>
+                            </div>
+                            <div class="flex flex-col text-left">
+                                <span class="text-[11px] font-bold text-slate-800">Panduan Gerakan:</span>
+                                <p id="hint-text" class="text-[11px] text-slate-600 leading-tight mt-0.5">
+                                    Posisikan tangan sejajar dada atau dagu di depan kamera. Lakukan gestur isyarat dengan mantap dan tahan sejenak hingga verifikasi terdeteksi.
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Hold/Dwell Progress -->
-                    <div id="holdProgressWrapper" class="hidden pt-1">
-                        <div class="flex justify-between text-[10px] font-bold text-on-surface-variant mb-1">
+                    <!-- Hold/Dwell Progress Bar (Subtle inside Card 1) -->
+                    <div id="holdProgressWrapper" class="hidden w-full pt-0.5">
+                        <div class="flex justify-between items-center text-[10px] font-bold text-slate-500 mb-0.5">
                             <span>Menahan Posisi Isyarat:</span>
+                            <span id="verificationStatusText" class="text-emerald-600 font-bold">0.0s / 1.0s</span>
                         </div>
-                        <div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
-                            <div id="holdProgressBar" class="bg-emerald-500 h-2 rounded-full transition-all duration-75" style="width: 0%"></div>
+                        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden border border-slate-200/60">
+                            <div id="holdProgressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-75" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Card 2: Live AI Detection Box (Mirip Active Recognition Card di Penerjemah) -->
-                <div class="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-outline-variant/30 shadow-xs flex flex-col space-y-3">
+                <!-- Card 2: UPCOMING QUESTION QUEUE (Stitch: Daftar Soal) -->
+                <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-sm p-3 sm:p-3.5 flex flex-col gap-2">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-primary text-lg">psychology</span>
-                            <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Hasil Deteksi AI</span>
+                            <span class="material-symbols-outlined text-slate-600 text-[18px]">format_list_numbered</span>
+                            <span class="text-xs font-bold text-slate-900 uppercase tracking-wide">Daftar Soal</span>
                         </div>
-                        <div id="liveAiPredictionBadge" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-extrabold flex items-center gap-1">
-                            <span class="material-symbols-outlined text-xs">check</span>
-                            <span id="liveAiPredText">-</span>
-                        </div>
+                        <span id="queueDifficultyLabel" class="text-[10px] font-bold text-blue-700 px-2 py-0.5 rounded-full bg-blue-50 border border-blue-200">
+                            Tingkat Mudah
+                        </span>
                     </div>
-
-                    <div class="bg-surface-container-low p-3.5 rounded-2xl border border-outline-variant/15 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-xl">front_hand</span>
-                        </div>
-                        <div class="min-w-0">
-                            <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block">Petunjuk Peragaan</span>
-                            <p class="text-xs font-semibold text-on-surface truncate">
-                                Hadapkan telapak tangan & peragakan kata yang disorot
-                            </p>
-                        </div>
+                    <!-- Dynamic Question Queue -->
+                    <div id="quizQuestionQueue" class="flex flex-col gap-1.5 max-h-[140px] sm:max-h-[170px] overflow-y-auto pr-1">
+                        <!-- Populated dynamically via quiz.js -->
                     </div>
                 </div>
             </div>

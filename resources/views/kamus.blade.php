@@ -108,30 +108,59 @@
     </div>
 </div>
 
-<!-- Modal Detail & Video Preview -->
-<div id="detailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 p-4">
-    <div class="bg-surface liquid-glass border border-white/80 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300">
+<!-- Modal Detail & Video Preview (macOS Window Style) -->
+<div id="detailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 p-4" role="dialog" aria-modal="true" aria-labelledby="modalHeaderTitle">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-all duration-300 flex flex-col">
+        <!-- macOS Window Titlebar (Traffic Lights & Centered Title) -->
+        <div class="px-4 py-3 bg-slate-100 border-b border-slate-200 flex items-center justify-between select-none">
+            <!-- Mac Traffic Lights (Merah, Kuning, Hijau) -->
+            <div class="flex items-center gap-2 group/lights">
+                <!-- Tombol Merah (Close Window) -->
+                <button id="modalCloseBtn" 
+                        type="button" 
+                        title="Tutup (Esc)" 
+                        aria-label="Tutup jendela kamus"
+                        class="w-3.5 h-3.5 rounded-full bg-[#ff5f56] hover:bg-[#e0443e] active:scale-90 border border-[#e0443e]/40 flex items-center justify-center text-[9px] text-[#7d0000] font-black transition-all cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-red-400">
+                    <span class="opacity-0 group-hover/lights:opacity-100 hover:opacity-100 transition-opacity leading-none select-none">✕</span>
+                </button>
+                <!-- Tombol Kuning (Minimize / Neutral) -->
+                <span title="Kuning" class="w-3.5 h-3.5 rounded-full bg-[#ffbd2e] border border-[#dea123]/40 flex items-center justify-center text-[9px] text-[#995700] font-bold shadow-xs select-none">
+                    <span class="opacity-0 group-hover/lights:opacity-100 transition-opacity leading-none select-none">−</span>
+                </span>
+                <!-- Tombol Hijau (Maximize / Expand) -->
+                <span title="Hijau" class="w-3.5 h-3.5 rounded-full bg-[#27c93f] border border-[#1aab29]/40 flex items-center justify-center text-[9px] text-[#006500] font-bold shadow-xs select-none">
+                    <span class="opacity-0 group-hover/lights:opacity-100 transition-opacity leading-none select-none">＋</span>
+                </span>
+            </div>
+
+            <!-- macOS Centered Window Title -->
+            <div class="flex items-center gap-1.5 min-w-0 px-2">
+                <span class="material-symbols-outlined text-slate-400 text-sm">sign_language</span>
+                <span id="modalHeaderTitle" class="text-xs font-bold text-slate-700 truncate max-w-[180px] sm:max-w-[240px]">Kamus SIBI</span>
+            </div>
+
+            <!-- Status / Kategori Badge di Sisi Kanan Window -->
+            <div class="flex items-center justify-end">
+                <span id="modalCategoryPill" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 truncate max-w-[110px]">
+                    Kosakata
+                </span>
+            </div>
+        </div>
+
         <!-- Modal Media Preview Header -->
-        <div class="relative aspect-video bg-inverse-surface overflow-hidden flex items-center justify-center">
+        <div class="relative aspect-video bg-slate-950 overflow-hidden flex items-center justify-center">
             <div id="modalMediaContainer" class="w-full h-full flex items-center justify-center">
                 <!-- Injected via JS -->
             </div>
-            <button id="modalCloseBtn" class="absolute top-3 right-3 bg-black/40 hover:bg-black/70 text-white rounded-full p-1.5 transition-colors">
-                <span class="material-symbols-outlined text-xl">close</span>
-            </button>
         </div>
+
         <!-- Modal Info Body -->
-        <div class="p-6 space-y-4">
+        <div class="p-6 space-y-4 bg-white">
             <div class="flex items-center justify-between gap-3">
-                <h3 id="modalTitle" class="text-2xl font-extrabold text-on-surface tracking-tight"></h3>
-                <span id="modalCategory" class="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-semibold"></span>
+                <h3 id="modalTitle" class="text-2xl font-extrabold text-slate-900 tracking-tight"></h3>
+                <span id="modalCategory" class="text-xs px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold"></span>
             </div>
-            <p id="modalDesc" class="text-sm text-on-surface-variant leading-relaxed"></p>
-            <div class="pt-2 flex justify-end">
-                <button id="modalCloseActionBtn" class="px-5 py-2.5 bg-primary text-on-primary font-semibold text-sm rounded-full shadow-md hover:bg-primary/90 transition-all">
-                    Tutup
-                </button>
-            </div>
+            <p id="modalDesc" class="text-sm text-slate-600 leading-relaxed"></p>
         </div>
     </div>
 </div>
