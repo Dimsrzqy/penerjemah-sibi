@@ -68,20 +68,37 @@
                     @if($videoUrl && !$isVideo)
                         <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                              src="{{ $videoUrl }}" 
-                             alt="Kamus SIBI {{ $item->word }}">
+                             alt="Kamus SIBI {{ $item->word }}"
+                             loading="lazy">
                     @elseif($isVideo)
-                        <video class="w-full h-full object-cover" muted preload="metadata">
-                            <source src="{{ $videoUrl }}">
-                        </video>
+                        <!-- On-Demand Video Cover: 0 KB video dimuat di awal, video hanya dimuat saat kartu diklik -->
+                        <div class="w-full h-full bg-gradient-to-br from-slate-900 via-slate-800 to-blue-950 flex flex-col items-center justify-center relative overflow-hidden group-hover:from-slate-850 group-hover:to-blue-900 transition-colors">
+                            <!-- Subtle Ambient Sign Pattern Watermark -->
+                            <div class="absolute -right-3 -bottom-3 text-white/[0.05] select-none pointer-events-none group-hover:scale-110 transition-transform duration-500">
+                                <span class="material-symbols-outlined text-8xl">sign_language</span>
+                            </div>
+
+                            <!-- Video Type Badge -->
+                            <div class="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/45 backdrop-blur-md border border-white/10 text-[10px] font-bold text-white/90">
+                                <span class="material-symbols-outlined text-[13px] text-blue-400">videocam</span>
+                                <span>Video SIBI</span>
+                            </div>
+
+                            <!-- Modern Play Button Pill -->
+                            <div class="w-12 h-12 rounded-2xl bg-primary/90 group-hover:bg-primary text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-all duration-300 backdrop-blur-xs border border-white/20">
+                                <span class="material-symbols-outlined text-2xl group-hover:translate-x-0.5 transition-transform">play_arrow</span>
+                            </div>
+
+                            <span class="text-[11px] font-semibold text-slate-300 mt-2 tracking-wide group-hover:text-white transition-colors">
+                                Putar Isyarat
+                            </span>
+                        </div>
                     @else
                         <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5 text-primary">
                             <span class="material-symbols-outlined text-5xl">sign_language</span>
                             <span class="text-xs font-bold mt-1 opacity-80">{{ $item->word }}</span>
                         </div>
                     @endif
-                    <div class="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/10 transition-colors">
-                        <span class="material-symbols-outlined text-4xl text-white opacity-90 group-hover:scale-110 transition-transform">play_circle</span>
-                    </div>
                 </div>
                 <div class="p-4 bg-white/80">
                     <div class="flex items-center justify-between gap-2">
