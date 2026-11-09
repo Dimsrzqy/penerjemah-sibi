@@ -144,7 +144,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (modalMediaContainer) {
             const video = modalMediaContainer.querySelector('video');
-            if (video) video.pause();
+            if (video) {
+                video.pause();
+                video.src = '';
+                video.load();
+            }
+            modalMediaContainer.innerHTML = '';
         }
     }
 

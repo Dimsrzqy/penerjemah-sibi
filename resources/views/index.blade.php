@@ -108,14 +108,6 @@
                                 Arahkan tangan kanan terbuka ke arah dagu lalu gerakkan lembut ke depan.
                             </p>
 
-                            <!-- Realtime Detection Feedback Badge -->
-                            <div class="mt-4 flex items-center gap-3 bg-slate-900/90 border border-slate-700/80 px-4 py-2 rounded-xl text-xs backdrop-blur-md shadow-lg">
-                                <span class="text-emerald-400 font-bold flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-sm font-bold">check_circle</span> Terdeteksi (98%)
-                                </span>
-                                <span class="text-slate-500">|</span>
-                                <span class="text-slate-200 font-medium">Level: Pemula</span>
-                            </div>
                         </div>
                     </div>
 
