@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Deep Learning AI State (TensorFlow.js)
     let tfModel = null;
-    let modelUrl = '/models/tfjs_model/model.json';
+    let modelUrl = '/models/model.json';
     let featureDimension = '126'; // '126' (2 tangan 3D/2D) | '63' | '42' | 'normalized_wrist'
     let confidenceThreshold = 0.70;
     let classLabels = [
@@ -1169,6 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!multiHandLandmarks || multiHandLandmarks.length === 0) {
             return new Array(featureDimension === '126' ? 126 : (featureDimension === '42' ? 42 : 63)).fill(0.0);
         }
+        if (featureDimension === '126') return extractSibiLandmarks(multiHandLandmarks, multiHandedness);
 
         const hand = multiHandLandmarks[0];
         let rawFeatures = [];
@@ -1176,39 +1177,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (featureDimension === '42') {
             for (let i = 0; i < hand.length; i++) {
                 rawFeatures.push(hand[i].x, hand[i].y);
-            }
-        } else if (featureDimension === '126') {
-            let leftHand = null;
-            let rightHand = null;
-
-            if (multiHandedness && multiHandedness.length > 0 && multiHandLandmarks.length > 1) {
-                for (let i = 0; i < multiHandLandmarks.length; i++) {
-                    const label = multiHandedness[i]?.label;
-                    if (label === 'Left' && !leftHand) {
-                        leftHand = multiHandLandmarks[i];
-                    } else if (label === 'Right' && !rightHand) {
-                        rightHand = multiHandLandmarks[i];
-                    }
-                }
-            }
-
-            const firstHand = leftHand || multiHandLandmarks[0];
-            const secondHand = rightHand || (multiHandLandmarks.length > 1 && multiHandLandmarks[1] !== firstHand ? multiHandLandmarks[1] : null);
-
-            const hands = [firstHand, secondHand];
-
-            for (let h = 0; h < 2; h++) {
-                if (hands[h]) {
-                    for (let i = 0; i < 21; i++) {
-                        if (hands[h][i]) {
-                            rawFeatures.push(hands[h][i].x, hands[h][i].y, hands[h][i].z);
-                        } else {
-                            rawFeatures.push(0.0, 0.0, 0.0);
-                        }
-                    }
-                } else {
-                    for (let i = 0; i < 63; i++) rawFeatures.push(0.0);
-                }
             }
         } else if (featureDimension === 'normalized_wrist') {
             const wrist = hand[0];
@@ -1232,6 +1200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
         const modelJson = await res.json();
+        if (modelJson.format === 'graph-model') return loadFrozenGruModel(url, modelJson);
 
         const baseUrl = url.substring(0, url.lastIndexOf('/') + 1);
         const manifest = modelJson.weightsManifest && modelJson.weightsManifest[0];
@@ -1387,18 +1356,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (aiModelStatus) aiModelStatus.textContent = 'Model TFJS Siap';
         if (aiModelDot) aiModelDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
 
-        // Auto-load metadata.json jika ada
-        const metaUrl = modelUrl.replace('model.json', 'metadata.json');
-        fetch(metaUrl)
+        fetch(modelUrl.replace('model.json', 'label_map.json'))
             .then(r => {
                 if (!r.ok) return null;
                 return r.json();
             })
-            .then(meta => {
-                if (meta && meta.labels && Array.isArray(meta.labels)) {
-                    classLabels = meta.labels;
-                    if (classesInput) classesInput.value = classLabels.join(', ');
+            .then(async labels => {
+                if (!labels) {
+                    const response = await fetch(modelUrl.replace('model.json', 'metadata.json'));
+                    labels = response.ok ? (await response.json()).labels : null;
                 }
+                if (!labels) return;
+                classLabels = Array.isArray(labels) ? labels : Object.keys(labels).sort((a, b) => labels[a] - labels[b]);
+                if (classesInput) classesInput.value = classLabels.join(', ');
             })
             .catch(() => {});
     }
@@ -1432,9 +1402,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('Model TFJS berhasil dimuat via GraphModel:', modelUrl, tfModel);
                 } catch (err3) {
                     tfModel = null;
-                    if (aiModelStatus) aiModelStatus.textContent = 'Model Belum Dimuat (Klik ⚙)';
+                    if (aiModelStatus) aiModelStatus.textContent = 'Gagal Memuat Model';
                     if (aiModelDot) aiModelDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-400';
-                    console.info('Model TFJS lokal belum ada di ' + modelUrl + '. Gunakan tombol ⚙ untuk konfigurasi URL model.');
+                    console.error('Model TFJS gagal dimuat dari ' + modelUrl, err3);
                 }
             }
         }
@@ -1564,14 +1534,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Verifikasi menggunakan Model Deep Learning (Asinkronus & Throttled agar 30+ FPS)
-            if (tfModel && sequenceBuffer.length >= 8 && !isQuestionCompleted) {
+            if (tfModel && sequenceBuffer.length > 0 && !isQuestionCompleted) {
                 const nowTime = performance.now();
                 if (!isInferring && (nowTime - lastInferTime >= INFER_INTERVAL_MS)) {
                     lastInferTime = nowTime;
                     isInferring = true;
-                    setTimeout(() => {
+                    setTimeout(async () => {
                         try {
-                            predictAndVerifyGesture();
+                            await predictAndVerifyGesture();
                         } finally {
                             isInferring = false;
                         }
@@ -1600,12 +1570,11 @@ document.addEventListener('DOMContentLoaded', () => {
         canvasCtx.restore();
     }
 
-    function predictAndVerifyGesture() {
+    async function predictAndVerifyGesture() {
         if (isQuestionCompleted || !tfModel || sequenceBuffer.length === 0) return;
 
+        let inputTensor, outputTensor;
         try {
-            tf.tidy(() => {
-                let inputTensor;
                 const inputShape = tfModel.inputs && tfModel.inputs[0] ? tfModel.inputs[0].shape : null;
 
                 if (inputShape && inputShape.length === 3) {
@@ -1613,9 +1582,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const targetFeatLen = inputShape[2] || (featureDimension === '126' ? 126 : 63);
                     
                     let seq = [...sequenceBuffer];
-                    while (seq.length < targetSeqLen) {
-                        seq.unshift(seq.length > 0 ? seq[0] : new Array(targetFeatLen).fill(0));
-                    }
+                    while (seq.length < targetSeqLen) seq.unshift(seq[0]);
                     if (seq.length > targetSeqLen) {
                         seq = seq.slice(-targetSeqLen);
                     }
@@ -1625,8 +1592,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     inputTensor = tf.tensor2d([latestFeat], [1, latestFeat.length]);
                 }
 
-                const outputTensor = tfModel.predict(inputTensor);
-                const scores = outputTensor.dataSync();
+                outputTensor = tfModel.executeAsync ? await tfModel.executeAsync(inputTensor) : tfModel.predict(inputTensor);
+                const scores = await outputTensor.data();
 
                 let maxIndex = 0;
                 let maxProb = scores[0];
@@ -1651,7 +1618,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // TARGET MATCHING: Bandingkan prediksi AI dengan target kata saat ini
                 const targetWord = (subWords[currentSubWordIndex] || '').trim().toUpperCase();
 
-                if (predictedClass === targetWord && maxProb >= confidenceThreshold) {
+                if (predictedClass === targetWord && maxProb >= confidenceThreshold && sequenceBuffer.length === SEQUENCE_LENGTH) {
                     // Isyarat tangan sesuai target & di atas threshold!
                     if (holdProgressWrapper) holdProgressWrapper.classList.remove('hidden');
                     holdFrames++;
@@ -1680,9 +1647,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         bottomHintText.className = 'text-[11px] text-white/90 bg-black/60 px-3.5 py-1 rounded-full backdrop-blur-md border border-white/10';
                     }
                 }
-            });
         } catch (err) {
             console.error('Error inferensi TensorFlow.js:', err);
+        } finally {
+            inputTensor?.dispose();
+            outputTensor?.dispose();
         }
     }
 
