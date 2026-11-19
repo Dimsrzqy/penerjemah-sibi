@@ -122,7 +122,7 @@
                                             <span class="material-symbols-outlined text-[20px] sm:text-[22px]">translate</span>
                                         </div>
                                         <div class="min-w-0">
-                                            <div class="text-[10px] uppercase font-bold tracking-wider text-slate-300">Kata Terdeteksi (Live)</div>
+                                            <div class="text-[10px] uppercase font-bold tracking-wider text-slate-300">Prediksi Kata (Live)</div>
                                             <div id="fsLiveDetectedWord" class="text-xl sm:text-3xl font-extrabold text-white/50 tracking-wide truncate">
                                                 —
                                             </div>
@@ -232,7 +232,7 @@
                         <!-- Active Detected Word Card -->
                         <div class="bg-surface-container-low/70 rounded-2xl p-3.5 sm:p-4 flex flex-col gap-2 border border-slate-200/60 shadow-2xs shrink-0">
                             <div class="flex items-start justify-between">
-                                <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Kata Terdeteksi</span>
+                                <span class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">Prediksi Kata</span>
                                 <div class="flex items-center gap-1">
                                     <button id="speakCurrentBtn" type="button" 
                                         class="p-1 rounded-lg hover:bg-surface-container text-primary transition-all active:scale-90" 
@@ -345,10 +345,10 @@
             <div class="space-y-1.5">
                 <label for="modelUrlInput" class="font-bold text-on-surface block">Lokasi File Model TFJS (model.json):</label>
                 <input id="modelUrlInput" type="text"
-                    value="/models/tfjs_model/model.json"
+                    value="/models/model.json"
                     class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-2.5 text-on-surface focus:outline-none focus:ring-2 focus:ring-primary font-mono text-xs">
                 <p class="text-[11px] text-on-surface-variant">
-                    File model aktif tersimpan di <code>public/models/tfjs_model/model.json</code>.
+                    File model aktif tersimpan di <code>public/models/model.json</code>.
                 </p>
             </div>
 
@@ -390,5 +390,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
+<script src="{{ asset('js/graph-gru.js') }}"></script>
 <script src="{{ asset('js/penerjemah.js') }}"></script>
 @endpush

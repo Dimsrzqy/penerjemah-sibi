@@ -687,7 +687,7 @@
                         <p class="text-xs text-on-surface-variant">Konfigurasi input fitur landmark & model Deep Learning</p>
                     </div>
                 </div>
-                <button id="btnCloseSettings" type="button" class="p-1.5 rounded-full hover:bg-surface-container text-on-surface-variant">
+                <button id="btnCloseSettings" type="button" class="p-1.5 rounded-full hover:bg-surface-container text-on-surface-variant min-h-[48px] min-w-[48px] flex items-center justify-center" aria-label="Tutup Pengaturan">
                     <span class="material-symbols-outlined text-xl">close</span>
                 </button>
             </div>
@@ -708,10 +708,10 @@
                 <div class="space-y-1.5">
                     <label class="font-bold text-on-surface block">Lokasi File Model TFJS (model.json):</label>
                     <input id="modelUrlInput" type="text"
-                        value="/models/tfjs_model/model.json"
+                        value="/models/model.json"
                         class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-2 text-on-surface focus:outline-none focus:border-primary font-mono text-xs">
                     <p class="text-[11px] text-on-surface-variant">
-                        File model aktif di <code>public/models/tfjs_model/model.json</code>.
+                        File model aktif di <code>public/models/model.json</code>.
                     </p>
                 </div>
 
@@ -772,5 +772,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
+<script src="{{ asset('js/graph-gru.js') }}"></script>
 <script src="{{ asset('js/quiz.js') }}"></script>
 @endpush

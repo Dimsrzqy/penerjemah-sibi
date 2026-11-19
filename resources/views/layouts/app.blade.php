@@ -150,28 +150,96 @@
             pointer-events: none;
         }
 
-        /* The Morphed Dynamic Island Capsule */
-        #mainHeader.is-scrolled #floatingNavPill {
-            pointer-events: auto;
-            background: rgba(255, 255, 255, 0.78);
-            backdrop-filter: blur(28px) saturate(190%);
-            -webkit-backdrop-filter: blur(28px) saturate(190%);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 
-                0 20px 40px -12px rgba(0, 67, 191, 0.16),
-                0 10px 24px -6px rgba(15, 23, 42, 0.08),
-                0 0 0 1px rgba(0, 0, 0, 0.04),
-                inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.95);
-            transform: translateY(8px) scale(1.02);
-            padding: 0.55rem 1.6rem;
+        #floatingNavPill,
+        #mobileIslandPill {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            background: linear-gradient(160deg, rgba(255, 255, 255, 0.58), rgba(248, 249, 255, 0.28) 48%, rgba(217, 232, 255, 0.38));
+            backdrop-filter: blur(24px) saturate(190%) contrast(108%);
+            -webkit-backdrop-filter: blur(24px) saturate(190%) contrast(108%);
+            border: 1px solid rgba(255, 255, 255, 0.82);
+            box-shadow:
+                0 14px 28px -16px rgba(11, 28, 48, 0.35),
+                0 6px 16px -12px rgba(0, 67, 191, 0.22),
+                inset 0 1.5px 1px rgba(255, 255, 255, 0.98),
+                inset 0 -1px 2px rgba(36, 70, 112, 0.2),
+                inset 2px 0 3px rgba(255, 255, 255, 0.68);
         }
 
-        #floatingNavPill:hover {
-            box-shadow: 
-                0 24px 48px -10px rgba(0, 67, 191, 0.2),
-                0 12px 28px -6px rgba(15, 23, 42, 0.1),
-                0 0 0 1px rgba(0, 0, 0, 0.05),
-                inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1);
+        #floatingNavPill::before,
+        #mobileIslandPill::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse 38% 75% at 12% -10%, rgba(255, 255, 255, 0.88), transparent 90%),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.55), transparent 34%, transparent 72%, rgba(45, 89, 147, 0.1));
+        }
+
+        #floatingNavPill::after,
+        #mobileIslandPill::after {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            border: 1px solid rgba(255, 255, 255, 0.48);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+
+        #floatingNavPill > a,
+        #mobileIslandPill > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        #floatingNavPill > a {
+            display: inline-flex;
+            align-items: center;
+            min-height: 48px;
+        }
+
+        #mobileIslandPill {
+            min-height: 48px;
+        }
+
+        #floatingNavPill a[aria-current="page"] {
+            isolation: isolate;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        #floatingNavPill a[aria-current="page"]::before {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            inset: 6px 3px;
+            border-radius: inherit;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.58);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 8px rgba(0, 67, 191, 0.08);
+        }
+
+        #floatingNavPill a:focus-visible,
+        #mobileIslandPill:focus-visible {
+            outline: 2px solid #0043bf;
+            outline-offset: 3px;
+        }
+
+        #mainHeader.is-scrolled #floatingNavPill {
+            pointer-events: auto;
+            transform: translateY(8px);
+            padding: 0.125rem 0.75rem;
+        }
+
+        #mainHeader.is-scrolled #floatingNavPill:hover {
+            box-shadow:
+                0 22px 42px -16px rgba(11, 28, 48, 0.38),
+                0 10px 24px -12px rgba(0, 67, 191, 0.26),
+                inset 0 1.5px 1px rgba(255, 255, 255, 0.98),
+                inset 0 -1px 2px rgba(36, 70, 112, 0.2);
         }
 
         /* Mobile Island Scrolled State */
@@ -181,16 +249,11 @@
             transform: translate(-50%, 8px) scale(1);
         }
 
-        #mobileIslandPill {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 
-                0 16px 36px -8px rgba(0, 67, 191, 0.16),
-                0 8px 18px -4px rgba(15, 23, 42, 0.08),
-                0 0 0 1px rgba(0, 0, 0, 0.04),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+        @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+            #floatingNavPill,
+            #mobileIslandPill {
+                background: rgba(248, 249, 255, 0.96);
+            }
         }
     </style>
     @stack('styles')
@@ -221,11 +284,11 @@
 
             <!-- Pill Navigation Bar (Mathematically Centered, Morphs into Dynamic Island Glass) -->
             <div class="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center pointer-events-auto">
-                <nav id="floatingNavPill" class="flex items-center gap-1.5 sm:gap-2 bg-slate-50/90 border border-slate-200/80 px-4 py-1.5 rounded-full shadow-xs text-sm transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
-                    <a class="px-3.5 py-1.5 rounded-full transition-all text-xs lg:text-sm {{ request()->routeIs('beranda') ? 'font-bold text-blue-600 bg-blue-50/90 shadow-2xs' : 'font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-100/70' }}" href="{{ route('beranda') }}">Beranda</a>
-                    <a class="px-3.5 py-1.5 rounded-full transition-all text-xs lg:text-sm {{ request()->routeIs('penerjemah') ? 'font-bold text-blue-600 bg-blue-50/90 shadow-2xs' : 'font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-100/70' }}" href="{{ route('penerjemah') }}">Penerjemah Kamera</a>
-                    <a class="px-3.5 py-1.5 rounded-full transition-all text-xs lg:text-sm {{ request()->routeIs('kamus') ? 'font-bold text-blue-600 bg-blue-50/90 shadow-2xs' : 'font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-100/70' }}" href="{{ route('kamus') }}">Kamus SIBI</a>
-                    <a class="px-3.5 py-1.5 rounded-full transition-all text-xs lg:text-sm {{ request()->routeIs('quiz') ? 'font-bold text-blue-600 bg-blue-50/90 shadow-2xs' : 'font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-100/70' }}" href="{{ route('quiz') }}">Kuis Praktik</a>
+                <nav id="floatingNavPill" class="flex items-center gap-1 bg-slate-50/90 border border-slate-200/80 px-3 py-0.5 rounded-full shadow-xs text-sm transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                    <a @if(request()->routeIs('beranda')) aria-current="page" @endif class="px-2.5 py-1.5 rounded-full transition-all text-xs lg:text-sm {{ request()->routeIs('beranda') ? 'font-bold text-blue-600 bg-blue-50/90 shadow-2xs' : 'font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-100/70' }}" href="{{ route('beranda') }}">Beranda</a>
+                    <a @if(request()->routeIs('penerjemah')) aria-current="page" @endif class="px-2.5 py-1.5 rounded-full transition-all text-xs lg:text-sm {{ request()->routeIs('penerjemah') ? 'font-bold text-blue-600 bg-blue-50/90 shadow-2xs' : 'font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-100/70' }}" href="{{ route('penerjemah') }}">Penerjemah Kamera</a>
+                    <a @if(request()->routeIs('kamus')) aria-current="page" @endif class="px-2.5 py-1.5 rounded-full transition-all text-xs lg:text-sm {{ request()->routeIs('kamus') ? 'font-bold text-blue-600 bg-blue-50/90 shadow-2xs' : 'font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-100/70' }}" href="{{ route('kamus') }}">Kamus SIBI</a>
+                    <a @if(request()->routeIs('quiz')) aria-current="page" @endif class="px-2.5 py-1.5 rounded-full transition-all text-xs lg:text-sm {{ request()->routeIs('quiz') ? 'font-bold text-blue-600 bg-blue-50/90 shadow-2xs' : 'font-medium text-slate-600 hover:text-blue-600 hover:bg-slate-100/70' }}" href="{{ route('quiz') }}">Kuis Praktik</a>
                 </nav>
             </div>
 
@@ -238,7 +301,7 @@
 
                 <!-- Mobile Hamburger Button -->
                 <div class="md:hidden flex items-center">
-                    <button id="mobileMenuToggle" type="button" class="p-2 rounded-xl text-slate-700 hover:bg-slate-100 focus:outline-none transition-colors" aria-label="Toggle navigation">
+                    <button id="mobileMenuToggle" type="button" class="p-2 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-700 transition-colors" aria-label="Buka menu navigasi" aria-controls="mobileMenuDrawer" aria-expanded="false">
                         <span id="menuOpenIcon" class="material-symbols-outlined text-2xl">menu</span>
                         <span id="menuCloseIcon" class="material-symbols-outlined text-2xl hidden">close</span>
                     </button>
@@ -248,7 +311,7 @@
 
         <!-- Mobile Dynamic Island Pill (When Scrolled on Mobile) -->
         <div id="mobileIslandContainer" class="md:hidden absolute top-2 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none scale-90 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]">
-            <div id="mobileIslandPill" class="flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-semibold cursor-pointer select-none active:scale-95 transition-transform">
+            <button id="mobileIslandPill" type="button" aria-label="Buka menu navigasi" aria-controls="mobileMenuDrawer" aria-expanded="false" class="flex items-center gap-2.5 px-4 py-2 rounded-full text-xs font-semibold cursor-pointer select-none active:scale-95 transition-transform">
                 <img alt="K-Suli" class="h-5 w-5 object-contain" src="{{ asset('images/k-suli-logo.svg') }}">
                 <span class="font-bold text-slate-800">
                     @if(request()->routeIs('beranda')) Beranda
@@ -259,7 +322,7 @@
                 </span>
                 <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                 <span class="material-symbols-outlined text-sm text-slate-500">expand_more</span>
-            </div>
+            </button>
         </div>
 
         <!-- Mobile Drawer Menu (Stitch Optimized) -->
@@ -412,11 +475,17 @@
                 const isHidden = drawer.classList.contains('hidden');
                 if (isHidden) {
                     drawer.classList.remove('hidden');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+                    if (mobileIslandPill) mobileIslandPill.setAttribute('aria-expanded', 'true');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-label', 'Tutup menu navigasi');
                     if (openIcon) openIcon.classList.add('hidden');
                     if (closeIcon) closeIcon.classList.remove('hidden');
                     if (mainHeader) mainHeader.classList.remove('is-scrolled');
                 } else {
                     drawer.classList.add('hidden');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+                    if (mobileIslandPill) mobileIslandPill.setAttribute('aria-expanded', 'false');
+                    if (toggleBtn) toggleBtn.setAttribute('aria-label', 'Buka menu navigasi');
                     if (openIcon) openIcon.classList.remove('hidden');
                     if (closeIcon) closeIcon.classList.add('hidden');
                 }
